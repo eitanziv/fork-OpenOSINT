@@ -13,6 +13,7 @@
 <a href="#name">NAME</a>
 <a href="#synopsis">SYNOPSIS</a>
 <a href="#description">DESCRIPTION</a>
+<a href="#demo">DEMO</a>
 <a href="#architecture">ARCHITECTURE</a>
 <a href="#installation">INSTALLATION</a>
 <a href="#repl">REPL</a>
@@ -61,6 +62,16 @@ openosint [<b>-v</b>] [<b>--api-key</b> <u>key</u>]</pre>
 <p><b>Direct CLI</b> &mdash; run individual OSINT tools without AI for scripting or quick lookups.</p>
 <p><b>MCP Server</b> &mdash; expose all 9 tools to any MCP-compatible AI client (Claude Code, Claude Desktop).</p>
 <p>The AI layer uses the Anthropic native tool use API. The model issues hard stops when it needs a tool — the real tool executes and real output goes back. Hallucination in tool results is structurally impossible.</p>
+</div>
+
+<h2 id="demo">DEMO</h2>
+<div class="indent">
+<p>Interactive REPL session — email investigation with breach check and username tracing.</p>
+<div style="text-align: center; margin: 12px 0 20px 0;">
+  <img src="../assets/demo.gif" 
+       alt="OpenOSINT demo" 
+       style="max-width: 100%; border: 1px solid #333; display: inline-block;">
+</div>
 </div>
 
 <h2 id="architecture">ARCHITECTURE</h2>
