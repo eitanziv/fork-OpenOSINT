@@ -2,8 +2,13 @@
 """
 OpenOSINT command-line interface.
 
-Provides direct, human-in-the-loop execution of OSINT modules
-without requiring an AI agent or MCP client.
+Default behaviour  : launches the interactive REPL (Claude Code style).
+Subcommands        : direct tool execution without AI (email, username).
+
+Usage:
+    openosint                          # interactive REPL
+    openosint email target@example.com # direct, no AI
+    openosint username johndoe99       # direct, no AI
 """
 
 from __future__ import annotations
@@ -24,7 +29,6 @@ _DIVIDER = "=" * 60
 # ---------------------------------------------------------------------------
 
 def _configure_logging(verbose: bool) -> None:
-    """Configure root logger verbosity."""
     level = logging.DEBUG if verbose else logging.WARNING
     logging.basicConfig(level=level, format="[%(levelname)s] %(name)s: %(message)s")
 
@@ -34,29 +38,45 @@ def _configure_logging(verbose: bool) -> None:
 # ---------------------------------------------------------------------------
 
 def _build_parser() -> argparse.ArgumentParser:
-    """Construct and return the top-level argument parser."""
     parser = argparse.ArgumentParser(
         prog="openosint",
-        description="OpenOSINT — CLI interface for direct OSINT tool execution.",
-        epilog="Example: openosint email target@example.com --timeout 60",
+        description=(
+            "OpenOSINT — AI-powered OSINT framework.\n"
+            "Run without arguments to start the interactive REPL."
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Examples:\n"
+            "  openosint                           # interactive AI session\n"
+            "  openosint email target@example.com  # direct email scan\n"
+            "  openosint username johndoe99        # direct username scan\n"
+        ),
     )
     parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable debug-level logging.",
     )
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        default=None,
+        metavar="KEY",
+        help="Anthropic API key (overrides ANTHROPIC_API_KEY env var).",
+    )
 
-    subparsers = parser.add_subparsers(
-        dest="command",
-        required=True,
-        metavar="command",
+    subparsers = parser.add_subparsers(dest="command", metavar="command")
+
+    # shell subcommand (explicit alias for REPL)
+    subparsers.add_parser(
+        "shell",
+        help="Start the interactive REPL (default when no command given).",
     )
 
     # email subcommand
     email_cmd = subparsers.add_parser(
         "email",
-        help="Enumerate services registered against an email address.",
+        help="Direct email scan via holehe (no AI).",
     )
     email_cmd.add_argument("target", type=str, metavar="ADDRESS")
     email_cmd.add_argument(
@@ -70,7 +90,7 @@ def _build_parser() -> argparse.ArgumentParser:
     # username subcommand
     username_cmd = subparsers.add_parser(
         "username",
-        help="Enumerate platforms where a username is registered.",
+        help="Direct username scan via sherlock (no AI).",
     )
     username_cmd.add_argument("target", type=str, metavar="USERNAME")
     username_cmd.add_argument(
@@ -85,7 +105,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 # ---------------------------------------------------------------------------
-# Command handlers
+# Direct command handlers (no AI)
 # ---------------------------------------------------------------------------
 
 def _print_result(result: str) -> None:
@@ -118,6 +138,12 @@ async def _async_main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
     _configure_logging(args.verbose)
+
+    # No subcommand or explicit 'shell' → launch REPL
+    if args.command in (None, "shell"):
+        from openosint.repl import run_repl
+        run_repl(api_key=getattr(args, "api_key", None))
+        return
 
     if args.command == "email":
         await _handle_email(args.target, args.timeout)

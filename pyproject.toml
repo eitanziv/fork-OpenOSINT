@@ -4,38 +4,68 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openosint"
-version = "2.1.0" # La nostra Major Release per l'era dell'AI!
-description = "The first MCP-native Open Source Intelligence framework for AI Agents."
+version = "2.1.0"
+description = "MCP-native Open Source Intelligence framework for AI agents. For authorized security research use only."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
-    {name = "Tommaso", email = "tua.email@example.com"} # Metti i tuoi dati
+    {name = "Tommaso Bertocchi"}
+]
+keywords = [
+    "osint", "security", "mcp", "cli", "ai", "agent",
+    "anthropic", "claude", "investigation", "recon", "cybersecurity"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
     "Topic :: Security",
+    "Topic :: Internet",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 dependencies = [
     "mcp>=1.0.0",
+    "anthropic>=0.40.0",
     "requests>=2.31.0",
     "python-whois>=0.9.0",
+    "rich>=13.0.0",
+    "prompt_toolkit>=3.0.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/tuo-username/OpenOSINT"
-Documentation = "https://tuo-username.github.io/OpenOSINT"
-Repository = "https://github.com/tuo-username/OpenOSINT.git"
+Homepage = "https://openosint.github.io/OpenOSINT"
+Repository = "https://github.com/OpenOSINT/OpenOSINT"
+Documentation = "https://openosint.github.io/OpenOSINT"
+"Bug Tracker" = "https://github.com/OpenOSINT/OpenOSINT/issues"
 
-# QUESTA È LA MAGIA PER LA CLI
 [project.scripts]
 openosint = "openosint.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "ruff>=0.1.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["openosint*"]
 exclude = ["assets*", "docs*", "scripts*", "tests*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
