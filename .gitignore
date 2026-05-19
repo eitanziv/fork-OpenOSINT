@@ -38,6 +38,9 @@ config.yml
 reports/
 *.cast
 
+# Media: generated GIFs and MP4s (tapes are versioned, output is not)
+media/output/
+
 # Distribution / packaging
 .installed.cfg
 lib/
