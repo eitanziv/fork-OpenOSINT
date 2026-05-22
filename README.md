@@ -2,7 +2,7 @@
   <img src="docs/logo.svg" alt="OpenOSINT" width="200" />
   <h1>OpenOSINT</h1>
   <p><strong>AI-powered OSINT agent. Interactive REPL · CLI · MCP Server · Web UI</strong></p>
-  <p>13 tools. Works with Claude, GPT-4, or local Ollama models. For authorized security research only.</p>
+  <p>13 tools. Powered by Anthropic Claude or local Ollama. For authorized security research only.</p>
 </div>
 
 <div align="center">
@@ -13,9 +13,9 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/)
 [![License MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![MCP](https://img.shields.io/badge/protocol-MCP-blueviolet?style=flat-square)](https://modelcontextprotocol.io/)
-[![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
 [![GitHub Stars](https://img.shields.io/github/stars/OpenOSINT/OpenOSINT?style=flat-square)](https://github.com/OpenOSINT/OpenOSINT/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/OpenOSINT/OpenOSINT?style=flat-square)](https://github.com/OpenOSINT/OpenOSINT/network/members)
+[![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
 
 </div>
 
@@ -23,7 +23,7 @@
   <img src="assets/demo.gif" alt="OpenOSINT demo" width="700" />
 </div>
 
-> ⚠️ **Legal Disclaimer**: OpenOSINT is intended for **legal and authorized use only**.
+> **Legal Disclaimer**: OpenOSINT is intended for **legal and authorized use only**.
 > Users are solely responsible for ensuring their use complies with all applicable laws and regulations.
 > The authors accept no liability for misuse. See [DISCLAIMER.md](DISCLAIMER.md).
 
@@ -125,14 +125,12 @@ Store all keys in a `.env` file at the project root (copy `.env.example`). `pyth
 
 Enumerates online services linked to an email address using [holehe](https://github.com/megadose/holehe).
 
-**CLI:**
 ```bash
-$ openosint email target@example.com
-$ openosint email target@example.com -t 60
+openosint email target@example.com
+openosint email target@example.com -t 60
 ```
 
-**Output:**
-```
+```text
 OSINT results for 'target@example.com':
 [+] Spotify        https://open.spotify.com/user/target
 [+] WordPress      https://wordpress.com/target
@@ -144,14 +142,12 @@ OSINT results for 'target@example.com':
 
 Searches for a username across 300+ platforms using [sherlock](https://github.com/sherlock-project/sherlock).
 
-**CLI:**
 ```bash
-$ openosint username johndoe99
-$ openosint username johndoe99 -t 120
+openosint username johndoe99
+openosint username johndoe99 -t 120
 ```
 
-**Output:**
-```
+```text
 OSINT results for username 'johndoe99':
 [+] GitHub         https://github.com/johndoe99
 [+] Twitter        https://twitter.com/johndoe99
@@ -162,8 +158,7 @@ OSINT results for username 'johndoe99':
 
 Checks data breach exposure via [HaveIBeenPwned v3 API](https://haveibeenpwned.com/API/v3). Requires `HIBP_API_KEY`.
 
-**Output:**
-```
+```text
 Found in 2 breach(es) for 'target@example.com':
 [+] LinkedIn (2016-05-05) — leaked: Email addresses, Passwords
 [+] Adobe (2013-10-04) — leaked: Email addresses, Password hints
@@ -173,8 +168,7 @@ Found in 2 breach(es) for 'target@example.com':
 
 Retrieves WHOIS data for a domain using [python-whois](https://github.com/richardpenman/whois).
 
-**Output:**
-```
+```text
 WHOIS results for 'example.com':
 [+] Registrar: ICANN
 [+] Created: 1995-08-14
@@ -186,8 +180,7 @@ WHOIS results for 'example.com':
 
 Retrieves geolocation and ASN data via [ipinfo.io](https://ipinfo.io). Free tier: 50k/month.
 
-**Output:**
-```
+```text
 IP intelligence for '8.8.8.8':
 [+] Hostname: dns.google
 [+] Org: AS15169 Google LLC
@@ -198,8 +191,7 @@ IP intelligence for '8.8.8.8':
 
 Enumerates subdomains using [sublist3r](https://github.com/aboul3la/Sublist3r).
 
-**Output:**
-```
+```text
 Subdomains found for 'example.com':
 [+] mail.example.com
 [+] dev.example.com
@@ -210,8 +202,7 @@ Subdomains found for 'example.com':
 
 Generates 12 targeted Google dork URLs for any target. No network calls.
 
-**Output:**
-```
+```text
 Google dork URLs for 'johndoe':
 [+] "johndoe" site:linkedin.com
     https://www.google.com/search?q=%22johndoe%22+site%3Alinkedin.com
@@ -223,8 +214,7 @@ Google dork URLs for 'johndoe':
 
 Searches Pastebin dumps via [psbdmp.ws](https://psbdmp.ws).
 
-**Output:**
-```
+```text
 Found in 3 paste(s) for 'target@example.com':
 [+] https://pastebin.com/aB1cD2eF (2023-04-12)
 [+] https://pastebin.com/xY3zA4bC (2022-11-08)
@@ -234,8 +224,7 @@ Found in 3 paste(s) for 'target@example.com':
 
 Gathers phone intelligence using [phoneinfoga](https://github.com/sundowndev/phoneinfoga). Use E.164 format.
 
-**Output:**
-```
+```text
 Phone intelligence for '+14155552671':
 [+] Country: United States
 [+] Carrier: AT&T
@@ -246,15 +235,13 @@ Phone intelligence for '+14155552671':
 
 Queries the [Shodan](https://shodan.io) API. IPv4 input → host lookup (open ports, org, CVEs). Any other query → banner/keyword search. Requires `SHODAN_API_KEY`.
 
-**CLI:**
 ```bash
-$ openosint shodan 8.8.8.8
-$ openosint shodan "apache port:80 country:DE"
-$ openosint shodan 8.8.8.8 -t 30
+openosint shodan 8.8.8.8
+openosint shodan "apache port:80 country:DE"
+openosint shodan 8.8.8.8 -t 30
 ```
 
-**Output:**
-```
+```text
 Shodan host intelligence for '8.8.8.8':
 [+] IP: 8.8.8.8
 [+] Org: Google LLC
@@ -266,16 +253,14 @@ Shodan host intelligence for '8.8.8.8':
 
 Checks an IP address, domain, URL, or file hash against [VirusTotal](https://www.virustotal.com)'s 70+ antivirus engines using API v3. Auto-detects input type. Requires `VIRUSTOTAL_API_KEY`.
 
-**CLI:**
 ```bash
-$ openosint virustotal 8.8.8.8
-$ openosint virustotal example.com
-$ openosint virustotal https://example.com/path
-$ openosint virustotal 44d88612fea8a8f36de82e1278abb02f
+openosint virustotal 8.8.8.8
+openosint virustotal example.com
+openosint virustotal https://example.com/path
+openosint virustotal 44d88612fea8a8f36de82e1278abb02f
 ```
 
-**Output:**
-```
+```text
 [VirusTotal] Type: ip
 [VirusTotal] ASN: AS15169 Google LLC
 [VirusTotal] Malicious: 0
@@ -283,23 +268,22 @@ $ openosint virustotal 44d88612fea8a8f36de82e1278abb02f
 ```
 
 If any engine flags the target:
-```
+
+```text
 [VirusTotal] Malicious: 3
-⚠️  FLAGGED AS MALICIOUS by 3 engines
+FLAGGED AS MALICIOUS by 3 engines
 ```
 
 ### search_censys
 
 Queries the [Censys](https://censys.io) API. IPv4 input → host view (open ports, services, ASN); domain input → certificate search (SANs, issuer, first/last seen). Requires `CENSYS_API_ID` and `CENSYS_SECRET`.
 
-**CLI:**
 ```bash
-$ openosint censys 8.8.8.8
-$ openosint censys example.com
+openosint censys 8.8.8.8
+openosint censys example.com
 ```
 
-**Output (IP):**
-```
+```text
 [Censys] IP: 8.8.8.8
 [Censys] Open Ports: 53, 443, 853
 [Censys] Services: DNS, HTTPS, DNS-over-TLS
@@ -307,8 +291,7 @@ $ openosint censys example.com
 [Censys] Country: United States
 ```
 
-**Output (domain):**
-```
+```text
 [Censys] Domain: example.com
 [Censys] Certificates Found: 12
 [Censys] Issuer: Let's Encrypt
@@ -319,14 +302,12 @@ $ openosint censys example.com
 
 Queries the [IP2Location.io](https://www.ip2location.io) API for enhanced IP intelligence: geolocation (country, region, city, coordinates, ZIP), ISP, domain, ASN, and — on the Security Plan — VPN, proxy, Tor exit node, and datacenter detection. Sponsored integration. Requires `IP2LOCATION_API_KEY`.
 
-**CLI:**
 ```bash
-$ openosint ip2location 8.8.8.8
-$ openosint ip2location 2001:4860:4860::8888
+openosint ip2location 8.8.8.8
+openosint ip2location 2001:4860:4860::8888
 ```
 
-**Output:**
-```
+```text
 [IP2Location] IP: 8.8.8.8
 [IP2Location] Country: United States (US)
 [IP2Location] Region: California
@@ -338,8 +319,9 @@ $ openosint ip2location 2001:4860:4860::8888
 ```
 
 If a VPN, proxy, or Tor exit node is detected:
-```
-⚠️  FLAGGED: VPN/Proxy/Tor detected
+
+```text
+FLAGGED: VPN/Proxy/Tor detected
 ```
 
 ## Interfaces
@@ -348,32 +330,17 @@ If a VPN, proxy, or Tor exit node is detected:
 
 Run `openosint` with no arguments to start the AI-powered REPL:
 
-```
-openosint ❯ investigate target@example.com
+```text
+openosint > investigate target@example.com
 
-  → generate_dorks('target@example.com')
-  → search_email('target@example.com')
-  ✓ Found: Spotify, WordPress, Gravatar, Office365
+  -> generate_dorks('target@example.com')
+  -> search_email('target@example.com')
+  Found: Spotify, WordPress, Gravatar, Office365
 
-  → search_breach('target@example.com')
-  ✓ Found in 2 breaches: LinkedIn (2016), Adobe (2013)
+  -> search_breach('target@example.com')
+  Found in 2 breaches: LinkedIn (2016), Adobe (2013)
 
-  ╭──────────────────── Report ────────────────────╮
-  │ ## Summary                                     │
-  │ Single target identified — high confidence.    │
-  │                                                │
-  │ ## Online Presence                             │
-  │ Spotify · WordPress · Gravatar · Office365     │
-  │                                                │
-  │ ## Data Breaches                               │
-  │ LinkedIn (2016) · Adobe (2013)                 │
-  │                                                │
-  │ ## Conclusion                                  │
-  │ Moderate footprint. Credential rotation        │
-  │ advised given breach exposure.                 │
-  ╰────────────────────────────────────────────────╯
-
-  ✓ Report saved → reports/2026-05-11_14-32-11_report.md
+  Report saved -> reports/2026-05-11_14-32-11_report.md
 ```
 
 **REPL commands:**
@@ -410,20 +377,27 @@ openosint web
 # Use Ollama for local inference (no API key)
 ollama pull llama3.2
 openosint web
-# Settings → Ollama (local) → set model to llama3.2
+# Settings -> Ollama (local) -> set model to llama3.2
 ```
+
+<div align="center">
+  <strong>Web UI</strong> — launch with <code>openosint web</code><br/>
+  <img src="assets/web-demo.gif" alt="OpenOSINT web UI demo" width="700" />
+</div>
 
 ### MCP Server
 
 Expose all 13 OpenOSINT tools to any MCP-compatible AI client. Once connected, Claude can natively invoke all 13 tools during conversations.
 
 **Claude Code:**
+
 ```bash
 claude mcp add openosint python /absolute/path/to/OpenOSINT/openosint/mcp_server.py
 claude mcp list
 ```
 
 **Claude Desktop** — add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -436,7 +410,8 @@ claude mcp list
 ```
 
 **Agentic use via Claude Code:**
-```
+
+```text
 $ claude
 > Investigate target@example.com. Trace any username found
   across other platforms and compile a full report.
@@ -480,11 +455,6 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 | `--ollama-host URL` | Ollama server URL (default: `http://localhost:11434`) |
 | `--no-pdf` | Disable automatic PDF generation |
 
-<div align="center">
-  <strong>Web UI</strong> — launch with <code>openosint web</code><br/>
-  <img src="assets/web-demo.gif" alt="OpenOSINT web UI demo" width="700" />
-</div>
-
 ## Sponsors
 
 OpenOSINT is free and open source. Development is supported by:
@@ -497,10 +467,6 @@ Powers the `search_ip2location` tool with VPN, proxy, Tor, and datacenter detect
 ---
 
 *Interested in sponsoring OpenOSINT? Open an issue or reach out.*
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=OpenOSINT/OpenOSINT&type=Date)](https://star-history.com/#OpenOSINT/OpenOSINT&Date)
 
 ## Contributing
 
@@ -515,3 +481,7 @@ MIT — see [LICENSE](LICENSE).
 *For authorized security research only. See [DISCLAIMER.md](DISCLAIMER.md).*
 
 *OpenOSINT v2.13.0 — May 2026*
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=OpenOSINT/OpenOSINT&type=Date)](https://star-history.com/#OpenOSINT/OpenOSINT&Date)
