@@ -1,9 +1,9 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.OpenOSINT/openosint",
+  "name": "io.github.SonoTommy/openosint",
   "title": "OpenOSINT",
   "description": "AI-powered OSINT agent & MCP server. 16 tools: email, breach, IP, WHOIS, DNS, Shodan, GitHub & more.",
-  "version": "2.15.0",
+  "version": "2.15.2",
   "websiteUrl": "https://openosint.tech",
   "repository": {
     "url": "https://github.com/OpenOSINT/OpenOSINT",
@@ -13,7 +13,7 @@
     {
       "registryType": "pypi",
       "identifier": "openosint",
-      "version": "2.15.0",
+      "version": "2.15.2",
       "transport": {
         "type": "stdio"
       },
