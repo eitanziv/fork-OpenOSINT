@@ -49,6 +49,7 @@ Documentation = "https://openosint.github.io/OpenOSINT"
 
 [project.scripts]
 openosint = "openosint.cli:main"
+openosint-mcp = "openosint.mcp_server:main"
 
 [project.optional-dependencies]
 dev = [
