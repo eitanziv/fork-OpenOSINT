@@ -499,28 +499,41 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 
 ## Integrations
 
-| Service | URL | Tool |
-|---------|-----|------|
-| HaveIBeenPwned | https://haveibeenpwned.com | `search_breach` |
-| ipinfo.io | https://ipinfo.io | `search_ip` |
-| Shodan | https://shodan.io | `search_shodan` |
-| VirusTotal | https://www.virustotal.com | `search_virustotal` |
-| Censys | https://censys.io | `search_censys` |
-| IP2Location.io | https://www.ip2location.io | `search_ip2location` *(sponsored)* |
-| AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` |
+| Service | URL | Tool | Tier |
+|---------|-----|------|------|
+| IP2Location.io | https://www.ip2location.io | `search_ip2location` | Featured (sponsored) |
+| HaveIBeenPwned | https://haveibeenpwned.com | `search_breach` | Community |
+| ipinfo.io | https://ipinfo.io | `search_ip` | Community |
+| Shodan | https://shodan.io | `search_shodan` | Community |
+| VirusTotal | https://www.virustotal.com | `search_virustotal` | Community |
+| Censys | https://censys.io | `search_censys` | Community |
+| AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` | Community |
 
-## Sponsors
+## Sponsor this project
 
-OpenOSINT is free and open source. Development is supported by:
+OpenOSINT is used by OSINT practitioners, security researchers, and developers who are actively evaluating and adopting intelligence APIs. Every time a user configures a new integration, the documentation routes them directly to that provider's API sign-up page — putting sponsors in front of their target audience **at the moment of adoption**.
+
+Community integrations in the table above are eligible to upgrade to a Featured Integration sponsorship. Email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) if you'd like your API to be the recommended provider for its category.
+
+### Sponsorship tiers
+
+| Tier | Benefits |
+|------|----------|
+| **Featured Integration** | Recommended/default provider for a tool category; logo + badge in README, website, and docs; "Featured (sponsored)" label in the Integrations table; listed first among providers for that category |
+| **Sponsor** | Logo + link in README, website, and release notes |
+| **Supporter** | Listed on the [website sponsors page](https://openosint.tech/#sponsors) |
+
+Sponsorship is arranged by inquiry — reach out for current rates.
+
+### Current sponsors
 
 [![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
 
-**[IP2Location.io](https://www.ip2location.io)** — Enhanced IP geolocation and threat intelligence API.
-Powers the `search_ip2location` tool with VPN, proxy, Tor, and datacenter detection.
+**[IP2Location.io](https://www.ip2location.io)** — Enhanced IP geolocation and threat intelligence API. Powers the `search_ip2location` tool with VPN, proxy, Tor, and datacenter detection. *Featured Integration sponsor.*
 
 ---
 
-*Interested in sponsoring OpenOSINT? Open an issue or reach out.*
+To sponsor OpenOSINT, email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) or [open an issue](https://github.com/OpenOSINT/OpenOSINT/issues). Full prospectus: [SPONSORS.md](SPONSORS.md).
 
 ## Contributing
 
