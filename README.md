@@ -499,22 +499,28 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 
 ## Integrations
 
-| Service | URL | Tool | Tier |
-|---------|-----|------|------|
-| IP2Location.io | https://www.ip2location.io | `search_ip2location` | Featured (sponsored) |
-| HaveIBeenPwned | https://haveibeenpwned.com | `search_breach` | Community |
-| ipinfo.io | https://ipinfo.io | `search_ip` | Community |
-| Shodan | https://shodan.io | `search_shodan` | Community |
-| VirusTotal | https://www.virustotal.com | `search_virustotal` | Community |
-| Censys | https://censys.io | `search_censys` | Community |
-| AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` | Community |
-| GitHub    | https://github.com        | `search_github`    | Community |
+| Service | URL | Tool | Tier | Auth |
+|---------|-----|------|------|------|
+| IP2Location.io | https://www.ip2location.io | `search_ip2location` | Featured (sponsored) | API key — free tier |
+| AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` | Community | API key — free tier |
+| Censys | https://censys.io | `search_censys` | Community | API key — free tier |
+| GitHub | https://github.com | `search_github` | Community | Token optional |
+| HaveIBeenPwned | https://haveibeenpwned.com | `search_breach` | Community | API key — paid |
+| holehe | https://github.com/megadose/holehe | `search_email` | Community | None — local binary |
+| ipinfo.io | https://ipinfo.io | `search_ip` | Community | Token optional |
+| phoneinfoga | https://github.com/sundowndev/phoneinfoga | `search_phone` | Community | None — local binary |
+| psbdmp.ws | https://psbdmp.ws | `search_paste` | Community | None |
+| sherlock | https://github.com/sherlock-project/sherlock | `search_username` | Community | None — local binary |
+| Shodan | https://shodan.io | `search_shodan` | Community | API key — free tier |
+| sublist3r | https://github.com/aboul3la/Sublist3r | `search_domain` | Community | None — local binary |
+| VirusTotal | https://www.virustotal.com | `search_virustotal` | Community | API key — free tier |
+| WHOIS (IANA) | https://www.iana.org/whois | `search_whois` | Community | None |
+| DNS (system resolver) | — | `search_dns` | Community | None |
+| Google Search | https://www.google.com | `generate_dorks` | Community | None |
 
 ## Sponsor this project
 
-OpenOSINT is used by OSINT practitioners, security researchers, and developers who are actively evaluating and adopting intelligence APIs. Every time a user configures a new integration, the documentation routes them directly to that provider's API sign-up page — putting sponsors in front of their target audience **at the moment of adoption**.
-
-Community integrations in the table above are eligible to upgrade to a Featured Integration sponsorship. Email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) if you'd like your API to be the recommended provider for its category.
+OpenOSINT is used by OSINT practitioners, security researchers, and developers who are actively evaluating and adopting intelligence APIs. Every time a user configures a new integration, the documentation routes them directly to that provider's sign-up page — putting sponsors in front of their target audience at the moment of adoption.
 
 ### Sponsorship tiers
 
@@ -524,21 +530,23 @@ Community integrations in the table above are eligible to upgrade to a Featured 
 | **Sponsor** | Logo + link in README, website, and release notes |
 | **Supporter** | Listed on the [website sponsors page](https://openosint.tech/#sponsors) |
 
-Sponsorship is arranged by inquiry — reach out for current rates.
+Featured Integration tiers are available — see our Open Collective page or email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) for current rates and custom arrangements.
+
+Community integrations in the table above are eligible to upgrade to a Featured Integration sponsorship.
 
 ### Current sponsors
 
 [![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
 
-**[IP2Location.io](https://www.ip2location.io)** — Enhanced IP geolocation and threat intelligence API. Powers the `search_ip2location` tool with VPN, proxy, Tor, and datacenter detection. *Featured Integration sponsor.*
+**[IP2Location.io](https://www.ip2location.io)** — Featured Integration sponsor for the IP geolocation and threat intelligence category. Powers the `search_ip2location` tool with VPN, proxy, Tor exit node, and datacenter detection.
 
 ---
 
-To sponsor OpenOSINT, email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) or [open an issue](https://github.com/OpenOSINT/OpenOSINT/issues). Full prospectus: [SPONSORS.md](SPONSORS.md).
+To sponsor OpenOSINT, email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry). Full prospectus: [SPONSORS.md](SPONSORS.md).
 
 ## Contributing
 
-Issues and pull requests are welcome. Please read [DISCLAIMER.md](DISCLAIMER.md) before contributing.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, integration registration checklist, and coding conventions. Please read [DISCLAIMER.md](DISCLAIMER.md) before contributing.
 
 ## Maintainer
 

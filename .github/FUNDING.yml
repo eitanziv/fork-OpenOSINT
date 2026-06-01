@@ -1,4 +1,5 @@
-# TODO: add `github: <username>` once GitHub Sponsors is approved
+# open_collective: openosint_oss  # uncomment once Open Source Collective approves the fiscal host
+# github: [SonoTommy]
 custom:
   - "https://openosint.tech/#sponsors"
   - "mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry"
