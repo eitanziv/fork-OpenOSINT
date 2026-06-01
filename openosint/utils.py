@@ -11,7 +11,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import shutil
+import sys
+from pathlib import Path
 from typing import NamedTuple
 
 from openosint.tools.exceptions import ToolNotFoundError, ToolTimeoutError
@@ -54,9 +57,15 @@ async def run_subprocess(
     ToolTimeoutError
         When the process exceeds timeout_seconds.
     """
-    if not shutil.which(binary):
+    # Also search the directory where the current Python executable lives so that
+    # tools installed in the same venv or uv-tool bin directory are always found,
+    # even when that directory is not in the user's PATH.
+    venv_bin = str(Path(sys.executable).parent)
+    search_path = os.pathsep.join([venv_bin, os.environ.get("PATH", "")])
+    if not shutil.which(binary, path=search_path):
         detail = f" {install_hint}" if install_hint else ""
         raise ToolNotFoundError(f"'{binary}' is not installed or not in PATH.{detail}")
+    binary = shutil.which(binary, path=search_path) or binary
 
     process: asyncio.subprocess.Process | None = None
     try:
