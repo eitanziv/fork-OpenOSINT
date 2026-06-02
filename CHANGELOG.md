@@ -7,6 +7,21 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.18.1] — 2026-06-02
+
+### Fixed
+
+- Resolve binaries installed in the same venv/uv-tool bin (`run_subprocess()` now prepends the
+  directory of the running interpreter to `PATH`, so co-installed tools such as `holehe`,
+  `sherlock`, and `phoneinfoga` are found without requiring a separate activation step).
+  Thanks @consocio.
+
+### Changed
+
+- Version bumped to 2.18.1.
+
+---
+
 ## [2.15.0] — 2026-05-25
 
 ### Added
