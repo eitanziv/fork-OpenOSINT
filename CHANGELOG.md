@@ -11,10 +11,10 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- Resolve binaries installed in the same venv/uv-tool bin (`run_subprocess()` now prepends the
-  directory of the running interpreter to `PATH`, so co-installed tools such as `holehe`,
-  `sherlock`, and `phoneinfoga` are found without requiring a separate activation step).
-  Thanks @consocio.
+- Fix: resolve binaries installed in the same venv/uv-tool bin so co-installed tools
+  (`holehe`, `phoneinfoga`, `sherlock`, `sublist3r`) are found instead of throwing a spurious
+  `ToolNotFoundError`. `run_subprocess()` now prepends the running interpreter's `bin/` directory
+  to `PATH` before exec. Fix by [@consocio](https://github.com/consocio) ([#6](https://github.com/OpenOSINT/OpenOSINT/pull/6)).
 
 ### Changed
 

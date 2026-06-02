@@ -556,6 +556,12 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 - LinkedIn: https://www.linkedin.com/company/openosintoss  
 - Email: openosint@yahoo.com
 
+## Contributors
+
+| Contributor | Contribution |
+|---|---|
+| [@consocio](https://github.com/consocio) | venv/uv-tool binary resolution fix — co-installed tools are now found without a separate activation step ([#6](https://github.com/OpenOSINT/OpenOSINT/pull/6)) |
+
 ## License
 
 OpenOSINT is open source under the [MIT License](./LICENSE) — free for personal, academic, and open source use.
