@@ -1,6 +1,8 @@
 # OpenOSINT — Sponsorship Prospectus
 
-OpenOSINT is an open-source AI-powered OSINT framework used by security researchers, OSINT practitioners, and developers evaluating intelligence APIs. This document describes the sponsorship tiers, the referral funnel, and current audience metrics.
+OpenOSINT is an open-source AI-powered OSINT framework used by security researchers, OSINT practitioners, and developers evaluating intelligence APIs.
+
+→ Full media kit with audience and distribution details: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 
 ## Audience
 
@@ -10,90 +12,53 @@ OpenOSINT is an open-source AI-powered OSINT framework used by security research
 | GitHub forks | 51 |
 | PyPI downloads / month | 3,119 |
 | Website visits / month | <!-- TODO: from analytics --> |
-| Content reach | <!-- TODO: TikTok 300k, dev.to, freeCodeCamp, LinkedIn --> |
+| MCP Registry | Published — `io.github.OpenOSINT/openosint` |
+
+## Tier
+
+**Featured Integration** — the only sponsorship tier. One vendor per category.
+
+| Billing | Rate |
+|---------|------|
+| Annual  | $2,000/year (≈ $167/month — 2 months free vs monthly) |
+| Monthly | $220/month |
+
+Fiscal host: Open Collective / Open Source Collective — [opencollective.com/openosint_oss](https://opencollective.com/openosint_oss)
+
+**Placements included (all recurring):**
+
+- Recommended/default provider for one tool category (exclusive)
+- Logo + name + tagline in README Featured Integrations block
+- Sponsor badge in README badge row
+- "Featured (sponsored)" label and first listing in the Integrations table
+- CLI startup banner on every `openosint` invocation
+- Tool documentation — featured with API key sign-up link
+- Web UI settings panel — Featured integrations list
+- `openosint sponsors` CLI subcommand output
+- MCP Registry listing credit
+- Listed on [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
+- Named in release notes
+
+## Open categories
+
+| Category | Status |
+|----------|--------|
+| Residential & Datacenter Proxy Detection | **OPEN** |
+| Breach / Compromised-Credential Data | **OPEN** |
+| Threat & Domain Intelligence | **OPEN** |
+| Email / Identity Lookup | **OPEN** |
+| IP Geolocation & IP Intelligence | TAKEN — IP2Location.io |
 
 ## Referral funnel
 
-OpenOSINT's documentation and interactive REPL link users directly to each provider's API sign-up or pricing page during the configuration step. The path from "install" to "paying customer" has four stages:
-
-1. User installs OpenOSINT from PyPI or source.
-2. User reads the Configuration table or tool documentation.
-3. Links route them to the provider's sign-up or pricing page.
+1. User installs OpenOSINT (`pip install openosint` or from source).
+2. User reads the Configuration table or tool docs — your API is listed as the recommended provider with a direct sign-up link.
+3. User navigates to your pricing or sign-up page.
 4. User sets an API key and activates the integration.
-
-**Featured Integration** sponsors are named as the recommended provider for their category, appearing in the badge row, the Integrations table, and the tool-specific documentation — maximizing visibility at every stage of this funnel.
-
-## Tiers
-
-All tiers are **recurring placements** (monthly or annual). There are no one-off slots.
-
-### Featured Integration
-
-The highest-visibility tier. Your product becomes the named, recommended integration for a tool category.
-
-**Placements included:**
-- Dedicated "Featured Integration" block in the README `### Current sponsors` section (auto-rendered from `sponsors.json`)
-- Badge in the README badge row
-- "Featured (sponsored)" label in the Integrations table
-- A live code integration (`openosint/<tool>` command and AI agent tool)
-- One line in the CLI startup banner (`Featured integrations: <your name>`)
-- `openosint sponsors` subcommand lists you with a link
-- `/api/sponsors` web API endpoint exposes your entry to the Web UI footer
-- Listed first for your category in all docs
-- Listed in this document under **Current sponsors**
-
-**Pricing (recurring):**
-
-| Billing | Rate |
-|---------|------|
-| Monthly | <!-- set monthly rate --> Contact for rates |
-| Annual  | <!-- set annual rate --> Contact for rates |
-
----
-
-### Integration
-
-A code integration exists (or will be built) and your logo/link appears in the sponsors grid.
-
-**Placements included:**
-- Logo + link in the README sponsors grid (auto-rendered from `sponsors.json`)
-- A live code integration (`openosint/<tool>` command)
-- `openosint sponsors` subcommand lists you with a link
-- `/api/sponsors` web API endpoint exposes your entry to the Web UI
-- Listed in this document under **Current sponsors**
-
-**Pricing (recurring):**
-
-| Billing | Rate |
-|---------|------|
-| Monthly | <!-- set monthly rate --> Contact for rates |
-| Annual  | <!-- set annual rate --> Contact for rates |
-
----
-
-### Supporter
-
-Logo and link in the README sponsors grid — no code integration required.
-
-**Placements included:**
-- Logo + link in the README sponsors grid (auto-rendered from `sponsors.json`)
-- `openosint sponsors` subcommand lists you with a link
-- Listed in this document under **Current sponsors**
-
-**Pricing (recurring):**
-
-| Billing | Rate |
-|---------|------|
-| Monthly | <!-- set monthly rate --> Contact for rates |
-
----
 
 ## How to add or update a sponsor (maintainer guide)
 
-All sponsor data lives in [`sponsors.json`](sponsors.json) at the repo root.  
-Adding, updating, or removing a sponsor is a **one-file change**.
-
-Add an entry to `sponsors.json`:
+All sponsor data lives in [`sponsors.json`](sponsors.json). Adding, updating, or removing a sponsor is a **one-file change**.
 
 ```json
 {
@@ -113,17 +78,17 @@ Then regenerate the README block:
 python scripts/render_sponsors.py
 ```
 
-That's it. CLI banner, Web UI, and `openosint sponsors` update automatically at runtime.
+CLI banner, Web UI, and `openosint sponsors` update automatically at runtime.
 
 ## Current sponsors
 
-**[IP2Location.io](https://www.ip2location.io)** — Featured Integration (enhanced IP intelligence category)
+**[IP2Location.io](https://www.ip2location.io)** — Featured Integration (IP Geolocation & IP Intelligence)
 
 ## Contact
 
 - Email: [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry)
-- GitHub: [open an issue](https://github.com/OpenOSINT/OpenOSINT/issues)
-- Website: [openosint.tech/#sponsors](https://openosint.tech/#sponsors)
+- Open Collective: [opencollective.com/openosint_oss](https://opencollective.com/openosint_oss)
+- Website: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 
 ---
 

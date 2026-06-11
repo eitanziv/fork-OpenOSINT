@@ -31,6 +31,26 @@ mcp-name: io.github.OpenOSINT/openosint
 > Users are solely responsible for ensuring their use complies with all applicable laws and regulations.
 > The authors accept no liability for misuse. See [DISCLAIMER.md](DISCLAIMER.md).
 
+## Sponsors
+
+<table>
+<tr>
+<td align="center" width="200">
+<a href="https://www.ip2location.com" rel="noopener sponsored">
+<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location" width="140"><br>
+<sub><b>IP2Location</b></sub>
+</a><br>
+<sub>Featured Integration · IP Geolocation</sub>
+</td>
+<td>
+<b>Your logo here</b><br>
+<sub>Open categories: proxy detection · breach data · threat intel · email/identity</sub><br>
+<sub>One vendor per category — exclusive placement across README, docs, CLI, and Web UI.</sub><br><br>
+<sub><a href="https://openosint.tech/sponsors.html">Media kit & pricing →</a> · <a href="https://opencollective.com/openosint_oss">Open Collective</a> · <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></sub>
+</td>
+</tr>
+</table>
+
 ## What is OpenOSINT?
 
 OpenOSINT is an AI agent for Open Source Intelligence with three interfaces: an interactive terminal REPL, a direct CLI, and an MCP server exposable to Claude Code, Claude Desktop, or any MCP-compatible client — plus a browser-based Web UI added in v2.12.0. The AI layer uses Anthropic's native tool use API (or a local Ollama model, or any OpenAI-compatible endpoint): the model issues hard stops when it needs a tool, your code executes the real binary, the actual output goes back — hallucination in tool results is structurally impossible.
@@ -610,37 +630,29 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 
 ## Sponsor this project
 
-OpenOSINT is used by OSINT practitioners, security researchers, and developers who are actively evaluating and adopting intelligence APIs. Every time a user configures a new integration, the documentation routes them directly to that provider's sign-up page — putting sponsors in front of their target audience at the moment of adoption.
+OpenOSINT is used by OSINT practitioners, security researchers, and developers actively evaluating intelligence APIs. Every time a user configures an integration, the docs route them to that provider's sign-up page — high-intent exposure at the moment of adoption.
 
-### Sponsorship tiers
+**Featured Integration** ($2,000/year or $220/month): recommended/default provider for one tool category, exclusive. Logo + badge across README, docs, CLI banner, and Web UI. One vendor per category.
 
-| Tier | Price | Benefits |
-|------|-------|----------|
-| **Featured Integration (Yearly)** | $2,000/year (billed annually) | Recommended/default provider for a tool category; logo + badge in README, website, and docs; "Featured (sponsored)" label in the Integrations table; listed first among providers for that category; API shown to OSINT practitioners at the moment of adoption |
-| **Featured Integration (Monthly)** | $220/month | Same Featured Integration benefits, billed monthly |
-| **Sponsor** | $100/month | Logo + link in README, website, and release notes |
-| **Backer** | $5/month | Listed on the [website sponsors page](https://openosint.tech/#sponsors) |
-| **Donation** | Custom | One-time or recurring contribution |
+Open categories: **proxy detection** · **breach/credential data** · **threat & domain intel** · **email/identity lookup**
 
-Contribute via [Open Collective](https://opencollective.com/openosint_oss) or email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) for custom arrangements.
-
-Community integrations in the table above are eligible to upgrade to a Featured Integration sponsorship.
+→ Full media kit and pricing: [openosint.tech/sponsors.html](https://openosint.tech/sponsors.html)
 
 ### Current sponsors
 
 <!-- SPONSORS:START -->
 
-### Featured Integrations
+<a href="https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured" rel="noopener sponsored">
+<img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/ip2location-logo.png" alt="IP2Location" width="140">
+</a>
 
-**[IP2Location.io](https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — powers `search_ip2location`
+**[IP2Location.io](https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — Featured Integration · IP Geolocation & IP Intelligence
 
-> Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection
-
-_Want to sponsor OpenOSINT? See [SPONSORSHIP.md](SPONSORSHIP.md) for tiers and rates._
+Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection. Powers `search_ip2location`.
 
 <!-- SPONSORS:END -->
 
-To sponsor OpenOSINT: [Open Collective](https://opencollective.com/openosint_oss) · email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · full prospectus: [SPONSORSHIP.md](SPONSORSHIP.md).
+[Open Collective](https://opencollective.com/openosint_oss) · [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · [SPONSORSHIP.md](SPONSORSHIP.md)
 
 ## Contributing
 
