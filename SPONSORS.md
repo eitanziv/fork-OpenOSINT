@@ -6,9 +6,9 @@ OpenOSINT is an open-source AI-powered OSINT framework used by security research
 
 | Metric | Value |
 |--------|-------|
-| GitHub stars | 232 |
-| GitHub forks | 51 |
-| PyPI downloads / month | 3,119 |
+| GitHub stars | 607 |
+| GitHub forks | 105 |
+| PyPI downloads / month | 4,500 |
 | Website visits / month | <!-- TODO: from analytics --> |
 | Content reach | <!-- TODO: TikTok 300k, dev.to, freeCodeCamp, LinkedIn --> |
 
