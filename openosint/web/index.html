@@ -288,8 +288,23 @@
             class="text-xs font-mono"></span>
     </div>
 
+    <!-- sponsors footer -->
+    <template x-if="featuredSponsors.length > 0">
+      <div class="border-t border-app mt-4 pt-3">
+        <p class="text-muted text-xs mb-2">Featured integrations</p>
+        <template x-for="s in featuredSponsors" :key="s.name">
+          <a :href="s.url" target="_blank" rel="noopener sponsored"
+             class="flex items-center gap-2 text-secondary hover:text-primary text-xs transition-colors mb-1">
+            <span class="font-mono" x-text="s.name"></span>
+            <span class="text-muted">·</span>
+            <span class="text-muted truncate" x-text="s.tagline"></span>
+          </a>
+        </template>
+      </div>
+    </template>
+
     <!-- footer -->
-    <div class="border-t border-app mt-5 pt-4 flex items-center justify-between">
+    <div class="border-t border-app mt-4 pt-4 flex items-center justify-between">
       <span class="text-muted text-xs font-mono">OpenOSINT <span x-text="version"></span></span>
       <a href="https://github.com/OpenOSINT/OpenOSINT" target="_blank" rel="noopener"
          class="text-secondary hover:text-primary text-xs transition-colors">GitHub</a>
@@ -523,6 +538,7 @@ document.addEventListener('alpine:init', () => {
     openaiTestResult: '',
     openaiTestOk: false,
     tools: [],
+    featuredSponsors: [],
     showKeys: {},
     setupData: {},
     isLight: false,
@@ -578,6 +594,7 @@ document.addEventListener('alpine:init', () => {
       if (this.isLight) document.documentElement.classList.add('light');
       this.$nextTick(() => {
         this.fetchHealth();
+        this.fetchSponsors();
         document.getElementById('chat-input')?.focus();
       });
     },
@@ -626,6 +643,17 @@ document.addEventListener('alpine:init', () => {
       try {
         const r = await fetch('/api/tools');
         if (r.ok) this.tools = await r.json();
+      } catch {}
+    },
+
+    async fetchSponsors() {
+      try {
+        const r = await fetch('/api/sponsors');
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.status === 'ok') {
+          this.featuredSponsors = (d.sponsors || []).filter(s => s.tier === 'featured');
+        }
       } catch {}
     },
 

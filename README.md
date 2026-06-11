@@ -628,13 +628,19 @@ Community integrations in the table above are eligible to upgrade to a Featured 
 
 ### Current sponsors
 
-[![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
+<!-- SPONSORS:START -->
 
-**[IP2Location.io](https://www.ip2location.io)** — Featured Integration sponsor for the IP geolocation and threat intelligence category. Powers the `search_ip2location` tool with VPN, proxy, Tor exit node, and datacenter detection.
+### Featured Integrations
 
----
+**[IP2Location.io](https://www.ip2location.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — powers `search_ip2location`
 
-To sponsor OpenOSINT: [Open Collective](https://opencollective.com/openosint_oss) · email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · full prospectus: [SPONSORS.md](SPONSORS.md).
+> Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection
+
+_Want to sponsor OpenOSINT? See [SPONSORSHIP.md](SPONSORSHIP.md) for tiers and rates._
+
+<!-- SPONSORS:END -->
+
+To sponsor OpenOSINT: [Open Collective](https://opencollective.com/openosint_oss) · email [openosint@yahoo.com](mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry) · full prospectus: [SPONSORSHIP.md](SPONSORSHIP.md).
 
 ## Contributing
 

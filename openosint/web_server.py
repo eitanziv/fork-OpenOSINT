@@ -942,6 +942,20 @@ def create_app() -> FastAPI:
         return result
 
     # ------------------------------------------------------------------
+    # GET /api/sponsors
+    # ------------------------------------------------------------------
+
+    @app.get("/api/sponsors")
+    async def list_sponsors():
+        from openosint.sponsors import SponsorsValidationError, load_sponsors
+
+        try:
+            sponsors = load_sponsors()
+        except SponsorsValidationError as exc:
+            return JSONResponse({"status": "error", "message": str(exc)}, status_code=500)
+        return {"status": "ok", "sponsors": sponsors}
+
+    # ------------------------------------------------------------------
     # POST /api/run/{tool_name}
     # ------------------------------------------------------------------
 

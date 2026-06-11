@@ -493,6 +493,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     history_sub.add_parser("clear", help="Delete all session history files.")
 
+    # sponsors
+    subparsers.add_parser(
+        "sponsors",
+        help="List current sponsors and featured integrations.",
+    )
+
     return parser
 
 
@@ -732,6 +738,44 @@ async def _handle_multi(
 
 
 # ---------------------------------------------------------------------------
+# Sponsors command handler
+# ---------------------------------------------------------------------------
+
+
+def _handle_sponsors() -> None:
+    from openosint.sponsors import SponsorsValidationError, load_sponsors
+
+    try:
+        sponsors = load_sponsors()
+    except SponsorsValidationError as exc:
+        print(f"[!] sponsors.json error: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    print(_DIVIDER)
+    print(" SPONSORS & FEATURED INTEGRATIONS ".center(60, "="))
+    print(_DIVIDER)
+
+    tier_order = [
+        ("featured", "Featured Integrations"),
+        ("integration", "Integrations"),
+        ("supporter", "Supporters"),
+    ]
+    for tier_key, tier_label in tier_order:
+        tier_sponsors = [s for s in sponsors if s["tier"] == tier_key]
+        if not tier_sponsors:
+            continue
+        print(f"\n{tier_label}:")
+        for s in tier_sponsors:
+            tool_note = f"  [tool: {s['tool']}]" if s.get("tool") else ""
+            print(f"  • {s['name']}{tool_note}")
+            print(f"    {s['tagline']}")
+            print(f"    {s['url']}")
+
+    print("\n  Full prospectus: SPONSORSHIP.md")
+    print(_DIVIDER)
+
+
+# ---------------------------------------------------------------------------
 # Web server handler
 # ---------------------------------------------------------------------------
 
@@ -905,6 +949,8 @@ async def _async_main() -> None:
         )
     elif args.command == "history":
         _handle_history(args)
+    elif args.command == "sponsors":
+        _handle_sponsors()
     else:
         parser.print_help()
         sys.exit(1)

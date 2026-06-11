@@ -82,6 +82,20 @@ PROMPT_STYLE = Style.from_dict(
 # ---------------------------------------------------------------------------
 
 
+def _featured_integrations_line() -> str:
+    """Return a dim banner line listing featured sponsor names, or empty string."""
+    try:
+        from openosint.sponsors import get_featured
+
+        featured = get_featured()
+        if not featured:
+            return ""
+        names = ", ".join(s["name"] for s in featured)
+        return f"[dim]Featured integrations: {names}[/]"
+    except Exception:
+        return ""
+
+
 def _print_banner(provider: str, model: str) -> None:
     if provider == "ollama":
         provider_info = f"[dim]Provider: Ollama ({model})[/]"
@@ -90,10 +104,15 @@ def _print_banner(provider: str, model: str) -> None:
     else:
         provider_info = f"[dim]Provider: Anthropic ({model})[/]"
 
+    featured_line = _featured_integrations_line()
+    panel_content = f"[bold #00ff88]OpenOSINT[/] [dim]v{__version__}[/]  [dim]·[/]  {provider_info}"
+    if featured_line:
+        panel_content += f"\n{featured_line}"
+
     console.print()
     console.print(
         Panel.fit(
-            f"[bold #00ff88]OpenOSINT[/] [dim]v{__version__}[/]  [dim]·[/]  {provider_info}",
+            panel_content,
             border_style="#1e293b",
             padding=(0, 2),
         )
