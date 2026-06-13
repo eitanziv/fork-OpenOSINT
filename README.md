@@ -691,7 +691,7 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 | Starter | Subscription | $19 / mo | 1,000 / mo |
 | Pro | Subscription | $49 / mo | 5,000 / mo |
 
-→ **[openosint.tech/cloud/](https://openosint.tech/cloud/)** — landing page & Get started
+→ **[openosint.tech/cloud/](https://openosint.tech/cloud/)** — landing page &nbsp;·&nbsp; **[Get started →](https://buy.polar.sh/polar_cl_45nAq1h8jAxfrHXJNSFTXQ9jc5pk6mzOi4zSj4Dxypb)**
 
 → **[CLOUD.md](CLOUD.md)** — deploy & Polar setup guide
 
