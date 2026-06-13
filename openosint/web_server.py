@@ -336,6 +336,41 @@ def _get_ai_backend() -> tuple[str, str | None, bool | None]:
     return ("ollama" if reachable else "none"), ollama_host, reachable
 
 
+async def _probe_openai_endpoint(base_url: str, api_key: str) -> dict:
+    """Probe an OpenAI-compatible endpoint server-side (no browser CORS / mixed-content).
+
+    Distinguishes three states so the UI can give an accurate message:
+      * unreachable      — connection failed / refused / timed out
+      * reachable + auth_ok=False — server answered but rejected the key (401/403)
+      * reachable + auth_ok=True  — server answered and accepted the key
+
+    A 401/403 still means the endpoint is *up* and usable once a valid key is
+    supplied, so we must not report it as "not configured / unreachable" — that
+    was the old bug where a healthy LiteLLM/vLLM proxy showed as backend "none".
+    """
+    base = base_url.strip().rstrip("/")
+    if not base:
+        return {"reachable": False, "auth_ok": False, "status_code": None}
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    try:
+        if _httpx is not None:
+            async with _httpx.AsyncClient(timeout=2.5) as client:
+                r = await client.get(f"{base}/models", headers=headers)
+                status = r.status_code
+        else:
+            raw = await asyncio.to_thread(
+                lambda: _requests.get(f"{base}/models", headers=headers, timeout=2.5)
+            )
+            status = raw.status_code
+    except Exception:
+        return {"reachable": False, "auth_ok": False, "status_code": None}
+    return {
+        "reachable": True,
+        "auth_ok": status == 200,
+        "status_code": status,
+    }
+
+
 class RunRequest(BaseModel):
     input: str
     timeout: int = 120
@@ -349,6 +384,14 @@ class ChatRequest(BaseModel):
     ollama_host: str = "http://localhost:11434"
     openai_base_url: str = ""
     openai_model: str = ""
+    openai_api_key: str = ""
+
+
+class OpenAITestRequest(BaseModel):
+    """Body for POST /api/openai/test — all fields optional; blanks fall back
+    to the server's OPENAI_BASE_URL / OPENAI_API_KEY env vars."""
+
+    openai_base_url: str = ""
     openai_api_key: str = ""
 
 
@@ -1033,23 +1076,16 @@ def create_app() -> FastAPI:
         openai_base = os.environ.get("OPENAI_BASE_URL", "").strip().rstrip("/")
         if openai_base:
             api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-            headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-            try:
-                if _httpx is not None:
-                    async with _httpx.AsyncClient(timeout=2.5) as client:
-                        r = await client.get(f"{openai_base}/models", headers=headers)
-                        reachable = r.status_code == 200
-                else:
-                    raw = await asyncio.to_thread(
-                        lambda: _requests.get(f"{openai_base}/models", headers=headers, timeout=2.5)
-                    )
-                    reachable = raw.status_code == 200
-            except Exception:
-                reachable = False
+            probe = await _probe_openai_endpoint(openai_base, api_key)
+            # Reachable means the backend is configured & answering, even if the
+            # key is rejected (401/403) — the chat path will surface the auth
+            # error clearly rather than being silently blocked as "none".
             return {
                 "status": "ok",
-                "backend": "openai" if reachable else "none",
-                "openai_reachable": reachable,
+                "backend": "openai" if probe["reachable"] else "none",
+                "openai_reachable": probe["reachable"],
+                "openai_auth_ok": probe["auth_ok"],
+                "openai_status_code": probe["status_code"],
                 "openai_base_url": openai_base,
             }
 
@@ -1072,6 +1108,22 @@ def create_app() -> FastAPI:
             "backend": "ollama" if reachable else "none",
             "ollama_reachable": reachable,
         }
+
+    # ------------------------------------------------------------------
+    # POST /api/openai/test — probe an OpenAI-compatible endpoint from the
+    # server (the browser cannot: an http:// endpoint is blocked as
+    # mixed-content from the https:// UI, and cross-origin requests fail CORS).
+    # Accepts the values typed in Settings so the user can test before saving.
+    # ------------------------------------------------------------------
+
+    @app.post("/api/openai/test")
+    async def openai_test(req: OpenAITestRequest):
+        base_url = (req.openai_base_url or os.environ.get("OPENAI_BASE_URL", "")).strip()
+        api_key = (req.openai_api_key or os.environ.get("OPENAI_API_KEY", "")).strip()
+        if not base_url:
+            return {"status": "ok", "reachable": False, "auth_ok": False, "status_code": None}
+        probe = await _probe_openai_endpoint(base_url, api_key)
+        return {"status": "ok", **probe, "openai_base_url": base_url.rstrip("/")}
 
     # ------------------------------------------------------------------
     # POST /api/chat  — AI chat with tool_use, SSE streaming

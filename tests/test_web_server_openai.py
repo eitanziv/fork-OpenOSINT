@@ -654,3 +654,95 @@ class TestStreamOpenaiHttpxPath:
 
         assert events[0]["type"] == "error"
         assert "503" in events[0]["message"]
+
+
+# ---------------------------------------------------------------------------
+# _probe_openai_endpoint — server-side connectivity probe
+# ---------------------------------------------------------------------------
+
+
+class TestProbeOpenaiEndpoint:
+    """Probe must distinguish unreachable / reachable-but-unauthorized / ok.
+
+    Regression guard for the PR #8 bug where a healthy LiteLLM/vLLM proxy that
+    returns 401 on /models was reported as backend 'none' (unreachable),
+    blocking chat even though the endpoint was up.
+    """
+
+    async def test_empty_base_url_is_unreachable(self):
+        from openosint.web_server import _probe_openai_endpoint
+
+        result = await _probe_openai_endpoint("", "")
+        assert result == {"reachable": False, "auth_ok": False, "status_code": None}
+
+    async def test_200_is_reachable_and_auth_ok(self):
+        from openosint.web_server import _probe_openai_endpoint
+
+        with patch("openosint.web_server._httpx", None):
+            with patch("openosint.web_server._requests") as mreq:
+                mreq.get.return_value = _mock_requests_response(status_code=200, body={"data": []})
+                result = await _probe_openai_endpoint("http://localhost:4000/v1", "sk-key")
+
+        assert result["reachable"] is True
+        assert result["auth_ok"] is True
+        assert result["status_code"] == 200
+
+    async def test_401_is_reachable_but_not_auth_ok(self):
+        from openosint.web_server import _probe_openai_endpoint
+
+        with patch("openosint.web_server._httpx", None):
+            with patch("openosint.web_server._requests") as mreq:
+                mreq.get.return_value = _mock_requests_response(status_code=401, body={"error": "bad key"})
+                result = await _probe_openai_endpoint("http://localhost:4000/v1", "sk-stale")
+
+        assert result["reachable"] is True
+        assert result["auth_ok"] is False
+        assert result["status_code"] == 401
+
+    async def test_connection_error_is_unreachable(self):
+        from openosint.web_server import _probe_openai_endpoint
+
+        with patch("openosint.web_server._httpx", None):
+            with patch("openosint.web_server._requests") as mreq:
+                mreq.get.side_effect = ConnectionError("refused")
+                result = await _probe_openai_endpoint("http://10.0.0.9:4000/v1", "")
+
+        assert result["reachable"] is False
+        assert result["auth_ok"] is False
+        assert result["status_code"] is None
+
+    async def test_bearer_header_sent_when_key_present(self):
+        from openosint.web_server import _probe_openai_endpoint
+
+        with patch("openosint.web_server._httpx", None):
+            with patch("openosint.web_server._requests") as mreq:
+                mreq.get.return_value = _mock_requests_response(status_code=200, body={})
+                await _probe_openai_endpoint("http://localhost:4000/v1", "sk-abc")
+
+        _, kwargs = mreq.get.call_args
+        assert kwargs["headers"]["Authorization"] == "Bearer sk-abc"
+
+
+# ---------------------------------------------------------------------------
+# OpenAITestRequest — body model for POST /api/openai/test
+# ---------------------------------------------------------------------------
+
+
+class TestOpenAITestRequestModel:
+    """Regression guard: the /api/openai/test body must NOT require a 'message'
+    field. It originally reused ChatRequest (message required), so the Settings
+    'Test connection' POST returned 422."""
+
+    def test_validates_with_no_fields(self):
+        from openosint.web_server import OpenAITestRequest
+
+        req = OpenAITestRequest()
+        assert req.openai_base_url == ""
+        assert req.openai_api_key == ""
+
+    def test_accepts_partial_body(self):
+        from openosint.web_server import OpenAITestRequest
+
+        req = OpenAITestRequest(openai_base_url="http://localhost:4000/v1")
+        assert req.openai_base_url == "http://localhost:4000/v1"
+        assert req.openai_api_key == ""
