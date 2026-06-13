@@ -681,7 +681,17 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for
 
 ## OpenOSINT Cloud
 
-**OpenOSINT Cloud** is the hosted API version — one call, one bill, no infra to manage. Billing via [Polar](https://polar.sh) (Merchant of Record, handles international VAT automatically). Deployed on Heroku.
+**OpenOSINT Cloud** is a hosted REST and MCP API for IP and domain infrastructure intelligence — geolocation, ISP/ASN, proxy/VPN/datacenter/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration. Built for developers and security/anti-fraud teams. One call, one bill, no infra to manage. Billing via [Polar](https://polar.sh) (Merchant of Record, handles international VAT automatically).
+
+> **Privacy by design.** OpenOSINT Cloud does not search for or expose personal data about individuals and does not use leaked or breached data sources. It is scoped exclusively to IP addresses and domain names.
+
+| Plan | Type | Price | Credits |
+|---|---|---|---|
+| Pay-as-you-go | One-time | $10 | 100 |
+| Starter | Subscription | $19 / mo | 1,000 / mo |
+| Pro | Subscription | $49 / mo | 5,000 / mo |
+
+→ **[openosint.tech/cloud/](https://openosint.tech/cloud/)** — landing page & Get started
 
 → **[CLOUD.md](CLOUD.md)** — deploy & Polar setup guide
 

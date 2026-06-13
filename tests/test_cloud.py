@@ -14,7 +14,8 @@ Coverage:
   (g) missing customer key returns 422 without decrementing credits
   (h) server-source tool (ip2location) reads key from env, not customer store
   (i) upstream error leaves credits unchanged
-  (j) customer_optional (github) works with and without a stored key
+  (j) allow-list is exactly the 5 infrastructure tools; removed tools return 400
+  (k) webhook stores full license key (not display_key)
 """
 from __future__ import annotations
 
@@ -89,10 +90,10 @@ async def test_invalid_api_key_returns_401(client):
 
 async def test_zero_credits_returns_402(client):
     _seed("key-402", credits=0)
-    # generate_dorks has KeySource.none — key resolution is skipped, so 402 fires cleanly
+    # search_dns has KeySource.none — key resolution is skipped, so 402 fires cleanly
     resp = await client.post(
         "/v1/enrich",
-        json={"tool": "generate_dorks", "target": "example.com"},
+        json={"tool": "search_dns", "target": "example.com"},
         headers={"X-API-Key": "key-402"},
     )
     assert resp.status_code == 402
@@ -106,23 +107,23 @@ async def test_zero_credits_returns_402(client):
 async def test_success_decrements_credits_and_returns_result(client):
     _seed("key-200", credits=5)
     fake_result = {
-        "tool": "generate_dorks",
+        "tool": "search_dns",
         "target": "example.com",
         "timestamp": "2026-01-01T00:00:00+00:00",
-        "results": ["[+] dork 1", "[+] dork 2"],
+        "results": ["[+] A: 93.184.216.34"],
         "error": None,
     }
     with patch("cloud.tools.dispatch", new=AsyncMock(return_value=fake_result)):
         resp = await client.post(
             "/v1/enrich",
-            json={"tool": "generate_dorks", "target": "example.com"},
+            json={"tool": "search_dns", "target": "example.com"},
             headers={"X-API-Key": "key-200"},
         )
 
     assert resp.status_code == 200
     body = resp.json()
     assert body["credits_left"] == 4
-    assert body["results"] == ["[+] dork 1", "[+] dork 2"]
+    assert body["results"] == ["[+] A: 93.184.216.34"]
     assert body["error"] is None
     # Confirm the DB was actually mutated
     assert db._MEMORY_CUSTOMERS["key-200"].credits == 4
@@ -285,57 +286,48 @@ async def test_upstream_error_leaves_credits_unchanged(client):
     assert db._MEMORY_CUSTOMERS["key-err"].credits == 5
 
 
-# ── (j) customer_optional: github works with and without stored key ───────────
+# ── (j) allow-list shape and removed-tool 400s ───────────────────────────────
+
+from cloud.tools import ALLOW_LIST as _ALLOW_LIST
+
+_EXPECTED_TOOLS = {"search_ip", "search_ip2location", "search_abuseipdb", "search_dns", "search_domain"}
 
 
-async def test_github_customer_optional_with_key(client):
-    _seed("key-gh-with", credits=5)
-    await keys.store_key("key-gh-with", "github", "ghp_mytoken")
-
-    captured: list[str | None] = []
-
-    async def fake_dispatch(tool, target, api_key=None):
-        captured.append(api_key)
-        return {
-            "tool": tool, "target": target,
-            "timestamp": "2026-01-01T00:00:00+00:00",
-            "results": ["[GitHub] Login: octocat"],
-            "error": None,
-        }
-
-    with patch("cloud.tools.dispatch", new=fake_dispatch):
-        resp = await client.post(
-            "/v1/enrich",
-            json={"tool": "search_github", "target": "octocat"},
-            headers={"X-API-Key": "key-gh-with"},
-        )
-
-    assert resp.status_code == 200
-    assert captured == ["ghp_mytoken"]
+def test_allow_list_is_exactly_5_infrastructure_tools():
+    assert set(_ALLOW_LIST.keys()) == _EXPECTED_TOOLS
 
 
-async def test_github_customer_optional_without_key(client):
-    _seed("key-gh-none", credits=5)
-    # No github key stored — should still succeed (unauth call)
+async def test_search_github_returns_400(client):
+    _seed("key-gh-400", credits=5)
+    resp = await client.post(
+        "/v1/enrich",
+        json={"tool": "search_github", "target": "octocat"},
+        headers={"X-API-Key": "key-gh-400"},
+    )
+    assert resp.status_code == 400
+    assert db._MEMORY_CUSTOMERS["key-gh-400"].credits == 5
 
-    async def fake_dispatch(tool, target, api_key=None):
-        assert api_key is None  # unauth
-        return {
-            "tool": tool, "target": target,
-            "timestamp": "2026-01-01T00:00:00+00:00",
-            "results": ["[GitHub] Login: octocat"],
-            "error": None,
-        }
 
-    with patch("cloud.tools.dispatch", new=fake_dispatch):
-        resp = await client.post(
-            "/v1/enrich",
-            json={"tool": "search_github", "target": "octocat"},
-            headers={"X-API-Key": "key-gh-none"},
-        )
+async def test_search_paste_returns_400(client):
+    _seed("key-paste-400", credits=5)
+    resp = await client.post(
+        "/v1/enrich",
+        json={"tool": "search_paste", "target": "example@example.com"},
+        headers={"X-API-Key": "key-paste-400"},
+    )
+    assert resp.status_code == 400
+    assert db._MEMORY_CUSTOMERS["key-paste-400"].credits == 5
 
-    assert resp.status_code == 200
-    assert db._MEMORY_CUSTOMERS["key-gh-none"].credits == 4
+
+async def test_generate_dorks_returns_400(client):
+    _seed("key-dorks-400", credits=5)
+    resp = await client.post(
+        "/v1/enrich",
+        json={"tool": "generate_dorks", "target": "example.com"},
+        headers={"X-API-Key": "key-dorks-400"},
+    )
+    assert resp.status_code == 400
+    assert db._MEMORY_CUSTOMERS["key-dorks-400"].credits == 5
 
 
 # ── (k) webhook stores full license key (not display_key) ────────────────────

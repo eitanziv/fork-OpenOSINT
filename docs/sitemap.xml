@@ -54,6 +54,14 @@
     <priority>0.4</priority>
   </url>
 
+  <!-- Cloud landing page -->
+  <url>
+    <loc>https://openosint.tech/cloud/</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Blog posts -->
   <url>
     <loc>https://openosint.tech/blog/what-is-osint.html</loc>

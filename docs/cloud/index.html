@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API</title>
+<meta name="description" content="Hosted REST and MCP API for IP geolocation, ISP/ASN lookup, proxy/VPN/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration. Built for developers and security teams.">
+<meta name="keywords" content="IP intelligence API, IP geolocation API, AbuseIPDB, DNS lookup API, subdomain enumeration API, proxy detection, VPN detection, Tor exit node, MCP server, fraud detection API">
+<link rel="canonical" href="https://openosint.tech/cloud/">
+<meta property="og:title" content="OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API">
+<meta property="og:description" content="Hosted REST and MCP API for IP and domain infrastructure intelligence. Geolocation, ISP/ASN, proxy/VPN/Tor detection, abuse reputation, DNS, subdomain enumeration.">
+<meta property="og:url" content="https://openosint.tech/cloud/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenOSINT">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="OpenOSINT Cloud — IP &amp; Domain Infrastructure Intelligence API">
+<meta name="twitter:description" content="Hosted REST + MCP API for IP and domain infrastructure intelligence. For developers and security/anti-fraud teams.">
+<link rel="icon" type="image/svg+xml" href="../logo.svg">
+<link rel="stylesheet" href="../style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OpenOSINT Cloud",
+  "description": "Hosted REST and MCP API for IP and domain infrastructure intelligence — geolocation, ISP/ASN, proxy/VPN/Tor detection, IP abuse reputation, DNS records, and subdomain enumeration.",
+  "applicationCategory": "SecurityApplication",
+  "offers": [
+    { "@type": "Offer", "name": "Pay-as-you-go", "price": "10.00", "priceCurrency": "USD" },
+    { "@type": "Offer", "name": "Starter", "price": "19.00", "priceCurrency": "USD" },
+    { "@type": "Offer", "name": "Pro", "price": "49.00", "priceCurrency": "USD" }
+  ],
+  "url": "https://openosint.tech/cloud/",
+  "isPartOf": { "@type": "WebSite", "url": "https://openosint.tech" }
+}
+</script>
+<style>
+.plan-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-family: monospace; font-size: 13px; }
+.plan-table th { text-align: left; border-bottom: 2px solid #000; padding: 6px 12px 6px 0; }
+.plan-table td { padding: 6px 12px 6px 0; border-bottom: 1px solid #ddd; vertical-align: top; }
+.plan-table tr:last-child td { border-bottom: none; }
+.cta-btn { display: inline-block; background: #3fb950; color: #000; font-family: monospace; font-size: 13px; font-weight: bold; padding: 8px 20px; text-decoration: none; border: 2px solid #3fb950; border-radius: 3px; margin-top: 16px; }
+.cta-btn:hover { background: #2ea043; border-color: #2ea043; color: #000; }
+.tool-list { font-family: monospace; font-size: 13px; }
+.tool-list li { margin: 4px 0; }
+.notice { background: #f6f8fa; border-left: 3px solid #3fb950; padding: 10px 14px; margin: 16px 0; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div id="nav">
+<a href="/" style="color:#3fb950;font-weight:bold;">HOME</a>
+<a href="/blog/" style="color:#58a6ff;">BLOG</a>
+<a href="/tools/" style="color:#58a6ff;">TOOLS</a>
+<a href="/cloud/" style="color:#ffffff;">CLOUD API</a>
+<a href="https://github.com/OpenOSINT/OpenOSINT" target="_blank" rel="noopener">GITHUB</a>
+<span class="nav-sep">|</span><a href="/sponsors.html" class="nav-cta">&#10084; Sponsor</a>
+</div>
+
+<div id="content">
+
+<div id="masthead">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td class="mhead-l">OPENOSINT CLOUD</td>
+<td class="mhead-c">IP &amp; Domain Infrastructure Intelligence</td>
+<td class="mhead-r">REST + MCP API</td>
+</tr>
+</table>
+</div>
+
+<hr>
+
+<h2 id="name">NAME</h2>
+<div class="indent">
+<p><b>OpenOSINT Cloud</b> &mdash; hosted REST and MCP API for IP and domain infrastructure intelligence.</p>
+<p>One call, one bill, no infra to manage. Billing via <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a> (Merchant of Record &mdash; handles international VAT automatically).</p>
+<a href="https://polar.sh/openosint" class="cta-btn" target="_blank" rel="noopener">Get started &rarr;</a>
+</div>
+
+<h2 id="description">DESCRIPTION</h2>
+<div class="indent">
+<p>OpenOSINT Cloud provides structured, machine-readable intelligence about IP addresses and domains &mdash; the kind of data security engineers, fraud analysts, and backend developers need to make trust decisions in real time.</p>
+
+<p>The API exposes five tools:</p>
+
+<ul class="tool-list">
+  <li><b>search_ip</b> &mdash; IP geolocation, ISP, ASN, hostname (ipinfo.io)</li>
+  <li><b>search_ip2location</b> &mdash; enriched IP intelligence: proxy/VPN/datacenter/Tor detection, threat score, usage type <em>(sponsored by <a href="https://www.ip2location.io/" target="_blank" rel="noopener">IP2Location.io</a> &mdash; server key included, no setup required)</em></li>
+  <li><b>search_abuseipdb</b> &mdash; IP abuse reputation and report history (AbuseIPDB)</li>
+  <li><b>search_dns</b> &mdash; DNS record lookup: A, AAAA, MX, NS, TXT, CNAME, SOA</li>
+  <li><b>search_domain</b> &mdash; subdomain enumeration via passive DNS</li>
+</ul>
+
+<div class="notice">
+  <b>Privacy by design.</b> OpenOSINT Cloud does <em>not</em> search for or expose personal data about individuals, does not use leaked or breached data sources, and does not perform people-search lookups. It is scoped exclusively to IP addresses and domain names.
+</div>
+
+<p>Each tool call consumes one credit. Credits are never deducted for upstream errors.</p>
+</div>
+
+<h2 id="use-cases">USE CASES</h2>
+<div class="indent">
+<ul class="tool-list">
+  <li>Backend developers enriching IP addresses at sign-up or login</li>
+  <li>Fraud and AML teams screening transactions by IP and domain</li>
+  <li>Security engineers building threat-intelligence pipelines</li>
+  <li>Anti-fraud platforms detecting proxies, VPNs, and datacenter traffic</li>
+  <li>AI agents and MCP clients that need structured infrastructure data</li>
+</ul>
+</div>
+
+<h2 id="plans">PLANS</h2>
+<div class="indent">
+
+<table class="plan-table">
+<thead>
+<tr>
+<th>Plan</th>
+<th>Type</th>
+<th>Price</th>
+<th>Credits</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><b>Pay-as-you-go</b></td>
+<td>One-time</td>
+<td>$10</td>
+<td>100</td>
+<td>Evaluation, low-volume scripts</td>
+</tr>
+<tr>
+<td><b>Starter</b></td>
+<td>Subscription</td>
+<td>$19 / mo</td>
+<td>1,000 / mo</td>
+<td>Side projects, small APIs</td>
+</tr>
+<tr>
+<td><b>Pro</b></td>
+<td>Subscription</td>
+<td>$49 / mo</td>
+<td>5,000 / mo</td>
+<td>Production services, higher traffic</td>
+</tr>
+</tbody>
+</table>
+
+<p>Credits unused at month-end do not roll over for subscription plans. <a href="mailto:openosint@yahoo.com">Contact us</a> if you need higher volume.</p>
+
+<a href="https://polar.sh/openosint" class="cta-btn" target="_blank" rel="noopener">Get started &rarr;</a>
+</div>
+
+<h2 id="api">API</h2>
+<div class="indent">
+<p>All requests require an <code>X-API-Key</code> header containing the license key issued on purchase.</p>
+
+<p><b>Check balance</b></p>
+<pre>GET /v1/usage
+X-API-Key: YOUR_KEY
+
+&#x2192; {"plan":"starter","credits":999}</pre>
+
+<p><b>Run a tool</b></p>
+<pre>POST /v1/enrich
+X-API-Key: YOUR_KEY
+Content-Type: application/json
+
+{"tool": "search_ip", "target": "8.8.8.8"}</pre>
+
+<pre>{
+  "tool": "search_ip",
+  "target": "8.8.8.8",
+  "timestamp": "2026-06-13T10:00:00+00:00",
+  "results": [
+    "[+] Ip: 8.8.8.8",
+    "[+] Hostname: dns.google",
+    "[+] Org: AS15169 Google LLC",
+    "[+] City: Mountain View",
+    "[+] Country: US"
+  ],
+  "error": null,
+  "credits_left": 998
+}</pre>
+
+<p>Tools that require upstream API keys use BYOK (Bring Your Own Key): store your key once with <code>POST /v1/keys</code>, and the gateway resolves it automatically on every call. <code>search_ip2location</code> is server-keyed &mdash; no setup required.</p>
+</div>
+
+<h2 id="mcp">MCP SERVER</h2>
+<div class="indent">
+<p>The same five tools are available as an MCP server for Claude Desktop, Claude Code, and any MCP-compatible client &mdash; no extra infrastructure required. See <a href="https://github.com/OpenOSINT/OpenOSINT" target="_blank" rel="noopener">the repository</a> for MCP configuration.</p>
+</div>
+
+<h2 id="legal">LEGAL</h2>
+<div class="indent">
+<p>
+<a href="/terms/">Terms of Service</a> &nbsp;&middot;&nbsp;
+<a href="/privacy/">Privacy Policy</a> &nbsp;&middot;&nbsp;
+<a href="/acceptable-use/">Acceptable Use Policy</a> &nbsp;&middot;&nbsp;
+<a href="/subprocessors/">Sub-processors</a>
+</p>
+<p>Contact: <a href="mailto:openosint@yahoo.com">openosint@yahoo.com</a></p>
+</div>
+
+<hr>
+
+<div id="footer">
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td class="mhead-l">OPENOSINT CLOUD</td>
+<td class="mhead-c">openosint.tech/cloud/</td>
+<td class="mhead-r">OPENOSINT CLOUD</td>
+</tr>
+</table>
+</div>
+
+</div><!-- #content -->
+</body>
+</html>

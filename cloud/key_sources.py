@@ -13,7 +13,6 @@ entry here.  No other files need to change.
 Canonical provider strings (used by POST /v1/keys and 422 messages):
   "ipinfo"      — ipinfo.io token (search_ip)
   "abuseipdb"   — AbuseIPDB API key (search_abuseipdb)
-  "github"      — GitHub personal access token (search_github, optional)
 """
 from __future__ import annotations
 
@@ -37,15 +36,11 @@ class ToolKeyConfig(NamedTuple):
 # Single source of truth for v1 tool credentials.
 TOOL_KEY_CONFIG: dict[str, ToolKeyConfig] = {
     # Sponsored — key is server-provided; customers get this included.
-    "search_ip2location": ToolKeyConfig("IP2LOCATION_API_KEY", KeySource.server,            provider=None),
+    "search_ip2location": ToolKeyConfig("IP2LOCATION_API_KEY", KeySource.server,   provider=None),
     # BYOK required — customer must POST /v1/keys with the provider string below.
-    "search_ip":          ToolKeyConfig("IPINFO_TOKEN",        KeySource.customer,          provider="ipinfo"),
-    "search_abuseipdb":   ToolKeyConfig("ABUSEIPDB_API_KEY",   KeySource.customer,          provider="abuseipdb"),
-    # Optional BYOK — works unauth at 60 req/h; better with token at 5 000 req/h.
-    "search_github":      ToolKeyConfig("GITHUB_TOKEN",        KeySource.customer_optional, provider="github"),
+    "search_ip":          ToolKeyConfig("IPINFO_TOKEN",        KeySource.customer,  provider="ipinfo"),
+    "search_abuseipdb":   ToolKeyConfig("ABUSEIPDB_API_KEY",   KeySource.customer,  provider="abuseipdb"),
     # No credential required.
-    "generate_dorks":     ToolKeyConfig(None,                  KeySource.none,              provider=None),
-    "search_dns":         ToolKeyConfig(None,                  KeySource.none,              provider=None),
-    "search_whois":       ToolKeyConfig(None,                  KeySource.none,              provider=None),
-    "search_paste":       ToolKeyConfig(None,                  KeySource.none,              provider=None),
+    "search_dns":         ToolKeyConfig(None,                  KeySource.none,      provider=None),
+    "search_domain":      ToolKeyConfig(None,                  KeySource.none,      provider=None),
 }

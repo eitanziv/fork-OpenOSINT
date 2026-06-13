@@ -1,6 +1,8 @@
 # OpenOSINT Cloud — Deploy & Polar Setup Guide
 
-One-call, one-bill OSINT API.  Hosted on Heroku, billing via Polar.sh (Merchant of Record — handles international VAT automatically).
+Hosted REST and MCP API for IP and domain infrastructure intelligence.  One call, one bill, no infra to manage.  Hosted on Heroku, billing via Polar.sh (Merchant of Record — handles international VAT automatically).
+
+**Scope:** IP geolocation, ISP/ASN, proxy/VPN/datacenter/Tor detection, IP abuse reputation, DNS records, subdomain enumeration.  This service does **not** search for personal data about individuals and does not use leaked or breached data sources.
 
 ---
 
@@ -28,7 +30,6 @@ heroku config:set POLAR_WEBHOOK_SECRET=whsec_...   # set this after step 3
 # Set upstream keys used by the v1 tool set
 heroku config:set IP2LOCATION_API_KEY=...
 heroku config:set ABUSEIPDB_API_KEY=...
-heroku config:set GITHUB_TOKEN=...          # optional, raises GH rate limit
 heroku config:set IPINFO_TOKEN=...          # optional, raises ipinfo rate limit
 
 # Deploy
@@ -218,29 +219,26 @@ curl -s "https://your-app.herokuapp.com/v1/checkout?plan=starter" | jq .
 | `POLAR_CHECKOUT_*` | Production | Hosted checkout URLs per plan |
 | `POLAR_BENEFIT_ID_*` | Production | Benefit IDs for plan mapping |
 | `POLAR_PRODUCT_ID_*` | Production | Product IDs for renewal refill |
-| `IP2LOCATION_API_KEY` | Recommended | search_ip2location tool |
+| `IP2LOCATION_API_KEY` | Recommended | search_ip2location tool (sponsored) |
 | `ABUSEIPDB_API_KEY` | Recommended | search_abuseipdb tool |
-| `GITHUB_TOKEN` | Optional | Raises GitHub rate limit 60→5000/h |
 | `IPINFO_TOKEN` | Optional | Raises ipinfo.io rate limit |
 
 ---
 
 ## 10. v1 synchronous tool allow-list
 
-| Tool | Upstream | Key source | Provider string | Typical latency |
-|---|---|---|---|---|
-| `search_ip` | ipinfo.io | **customer** (BYOK) | `ipinfo` | ~1 s |
-| `search_whois` | python-whois | none | — | ~2–5 s |
-| `search_github` | GitHub API | customer optional | `github` | ~2–5 s |
-| `generate_dorks` | Pure Python | none | — | <100 ms |
-| `search_paste` | psbdmp.ws | none | — | ~2–5 s |
-| `search_dns` | dnspython | none | — | ~2–5 s |
-| `search_abuseipdb` | AbuseIPDB | **customer** (BYOK) | `abuseipdb` | ~1–2 s |
-| `search_ip2location` | IP2Location (sponsored) | server | — | ~1–2 s |
+IP and domain infrastructure intelligence only.
+
+| Tool | What it returns | Upstream | Key source | Provider string | Typical latency |
+|---|---|---|---|---|---|
+| `search_ip` | Geolocation, ISP, ASN, hostname | ipinfo.io | **customer** (BYOK) | `ipinfo` | ~1 s |
+| `search_ip2location` | Proxy/VPN/Tor/datacenter detection, threat score | IP2Location.io (sponsored) | server | — | ~1–2 s |
+| `search_abuseipdb` | IP abuse reputation, report history | AbuseIPDB | **customer** (BYOK) | `abuseipdb` | ~1–2 s |
+| `search_dns` | A, AAAA, MX, NS, TXT, CNAME, SOA records | dnspython | none | — | ~2–5 s |
+| `search_domain` | Subdomain enumeration (passive DNS) | sublist3r | none | — | ~10–30 s |
 
 **Key source legend:**
 - **customer** — customer must add their own key via `POST /v1/keys` before calling this tool; missing key returns 422.
-- **customer optional** — works unauthenticated (lower rate limits); add a key to increase limits.
 - **server** — key is provided by the operator; customers get it included at no extra step.
 - **none** — no credential required.
 
@@ -270,11 +268,6 @@ curl -s -X POST https://your-app.herokuapp.com/v1/keys \
   -H "Content-Type: application/json" \
   -d '{"provider": "abuseipdb", "secret": "your_abuseipdb_key"}'
 
-# Add a GitHub token (optional -- improves rate limits from 60 to 5000 req/h)
-curl -s -X POST https://your-app.herokuapp.com/v1/keys \
-  -H "X-API-Key: YOUR_LICENSE_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider": "github", "secret": "ghp_..."}'
 ```
 
 ### List stored keys (masked)
