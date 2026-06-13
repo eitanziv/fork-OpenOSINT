@@ -25,16 +25,16 @@ from openosint.tools.search_whois import run_whois_osint
 
 logger = logging.getLogger(__name__)
 
-# Each value is a coroutine factory: (target: str) → Awaitable[str].
-ALLOW_LIST: dict[str, Callable[[str], Coroutine[Any, Any, str]]] = {
-    "search_ip":          lambda t: run_ip_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "search_whois":       lambda t: run_whois_osint(domain=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "search_github":      lambda t: run_github_osint(query=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "generate_dorks":     lambda t: run_dork_osint(target=t),
-    "search_paste":       lambda t: run_paste_osint(query=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "search_dns":         lambda t: run_dns_osint(domain=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "search_abuseipdb":   lambda t: run_abuseipdb_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
-    "search_ip2location": lambda t: run_ip2location_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
+# Each value is a coroutine factory: (target: str, api_key: str | None) → Awaitable[str].
+ALLOW_LIST: dict[str, Callable[[str, str | None], Coroutine[Any, Any, str]]] = {
+    "search_ip":          lambda t, k: run_ip_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS, api_key=k),
+    "search_whois":       lambda t, _: run_whois_osint(domain=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
+    "search_github":      lambda t, k: run_github_osint(query=t, timeout_seconds=TOOL_TIMEOUT_SECONDS, api_key=k),
+    "generate_dorks":     lambda t, _: run_dork_osint(target=t),
+    "search_paste":       lambda t, _: run_paste_osint(query=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
+    "search_dns":         lambda t, _: run_dns_osint(domain=t, timeout_seconds=TOOL_TIMEOUT_SECONDS),
+    "search_abuseipdb":   lambda t, k: run_abuseipdb_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS, api_key=k),
+    "search_ip2location": lambda t, k: run_ip2location_osint(ip=t, timeout_seconds=TOOL_TIMEOUT_SECONDS, api_key=k),
     # ── v1.1 (async job queue required — exceed Heroku 30 s router limit) ────
     # "search_email":    ...,   # holehe ~2–3 min
     # "search_username": ...,   # sherlock ~2–3 min
@@ -51,7 +51,7 @@ ALLOW_LIST: dict[str, Callable[[str], Coroutine[Any, Any, str]]] = {
 }
 
 
-async def dispatch(tool: str, target: str) -> dict:
+async def dispatch(tool: str, target: str, api_key: str | None = None) -> dict:
     """
     Run a tool from the allow-list and return a format_tool_result dict.
 
@@ -60,5 +60,5 @@ async def dispatch(tool: str, target: str) -> dict:
     """
     if tool not in ALLOW_LIST:
         raise ValueError(f"Tool '{tool}' is not available in v1")
-    raw = await ALLOW_LIST[tool](target)
+    raw = await ALLOW_LIST[tool](target, api_key)
     return format_tool_result(tool, target, raw)

@@ -23,7 +23,7 @@ _IPINFO_URL = "https://ipinfo.io/{ip}/json"
 _DEFAULT_TIMEOUT = 10
 
 
-def _fetch_ip_data(ip: str, timeout_seconds: int) -> dict:
+def _fetch_ip_data(ip: str, timeout_seconds: int, api_key: str | None = None) -> dict:
     """
     Query ipinfo.io for geolocation and ASN data for ip.
 
@@ -34,7 +34,7 @@ def _fetch_ip_data(ip: str, timeout_seconds: int) -> dict:
     ToolExecutionError
         On unexpected HTTP status codes.
     """
-    token = os.environ.get("IPINFO_TOKEN", "")
+    token = api_key or os.environ.get("IPINFO_TOKEN", "")
     params: dict = {"token": token} if token else {}
 
     try:
@@ -74,6 +74,8 @@ def _format_ip_results(data: dict, ip: str) -> str:
 async def run_ip_osint(
     ip: str,
     timeout_seconds: int = _DEFAULT_TIMEOUT,
+    *,
+    api_key: str | None = None,
 ) -> str:
     """
     Retrieve geolocation and ASN data for ip via ipinfo.io.
@@ -94,7 +96,7 @@ async def run_ip_osint(
     """
     logger.info("Starting IP lookup for: %s", ip)
     try:
-        data = await asyncio.to_thread(_fetch_ip_data, ip, timeout_seconds)
+        data = await asyncio.to_thread(_fetch_ip_data, ip, timeout_seconds, api_key)
         result = _format_ip_results(data, ip)
         logger.info("IP lookup complete for: %s", ip)
         return result

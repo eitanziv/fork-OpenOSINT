@@ -13,8 +13,9 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from cloud import db
+from cloud import db, keys
 from cloud.routes import checkout, enrich, usage, webhook
+from cloud.routes import keys as keys_route
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(name)s: %(message)s")
 
@@ -22,6 +23,7 @@ logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(name)s: %(mess
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
     await db.init_pool()
+    keys.init_keys()
     yield
     await db.close_pool()
 
@@ -36,10 +38,11 @@ def create_app() -> FastAPI:
         ),
         lifespan=_lifespan,
     )
-    app.include_router(enrich.router,   prefix="/v1")
-    app.include_router(usage.router,    prefix="/v1")
-    app.include_router(checkout.router, prefix="/v1")
-    app.include_router(webhook.router,  prefix="/v1")
+    app.include_router(enrich.router,      prefix="/v1")
+    app.include_router(usage.router,       prefix="/v1")
+    app.include_router(checkout.router,    prefix="/v1")
+    app.include_router(webhook.router,     prefix="/v1")
+    app.include_router(keys_route.router,  prefix="/v1")
     return app
 
 

@@ -138,6 +138,8 @@ def _format_ip2location_results(data: dict, ip: str) -> str:
 async def run_ip2location_osint(
     ip: str,
     timeout_seconds: int = _DEFAULT_TIMEOUT,
+    *,
+    api_key: str | None = None,
 ) -> str:
     """
     Retrieve enhanced IP intelligence via the IP2Location.io API.
@@ -152,8 +154,8 @@ async def run_ip2location_osint(
     str
         Formatted result string or descriptive error message.
     """
-    api_key = os.environ.get("IP2LOCATION_API_KEY", "")
-    if not api_key:
+    resolved_key = api_key or os.environ.get("IP2LOCATION_API_KEY", "")
+    if not resolved_key:
         return (
             "Scan error: IP2LOCATION_API_KEY environment variable is not set. "
             "Get a key at https://www.ip2location.io/pricing"
@@ -165,7 +167,7 @@ async def run_ip2location_osint(
 
     logger.info("Starting IP2Location lookup for: %s", ip)
     try:
-        data = await asyncio.to_thread(_fetch_ip2location_data, ip, api_key, timeout_seconds)
+        data = await asyncio.to_thread(_fetch_ip2location_data, ip, resolved_key, timeout_seconds)
         result = _format_ip2location_results(data, ip)
         logger.info("IP2Location lookup complete for: %s", ip)
         return result

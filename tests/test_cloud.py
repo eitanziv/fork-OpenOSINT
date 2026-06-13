@@ -9,15 +9,22 @@ Coverage:
   (b) 402 when credits are exhausted
   (c) success path decrements credits and returns structured result
   (d) non-allow-listed tool returns 400
+  (e) key store/retrieve roundtrip — encrypted at rest, masked on GET /v1/keys
+  (f) enrich uses stored customer key and passes it to the tool
+  (g) missing customer key returns 422 without decrementing credits
+  (h) server-source tool (ip2location) reads key from env, not customer store
+  (i) upstream error leaves credits unchanged
+  (j) customer_optional (github) works with and without a stored key
 """
 from __future__ import annotations
 
+import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from cloud import db
+from cloud import db, keys
 from cloud.main import create_app
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
@@ -29,6 +36,9 @@ def reset_memory_store():
     db._MEMORY_CUSTOMERS.clear()
     db._MEMORY_BY_POLAR_ID.clear()
     db._MEMORY_EVENTS.clear()
+    keys._MEMORY_KEYS.clear()
+    # Reset cached Fernet so tests always get a fresh ephemeral key
+    keys._fernet = None
     yield
 
 
@@ -78,9 +88,10 @@ async def test_invalid_api_key_returns_401(client):
 
 async def test_zero_credits_returns_402(client):
     _seed("key-402", credits=0)
+    # generate_dorks has KeySource.none — key resolution is skipped, so 402 fires cleanly
     resp = await client.post(
         "/v1/enrich",
-        json={"tool": "search_ip", "target": "8.8.8.8"},
+        json={"tool": "generate_dorks", "target": "example.com"},
         headers={"X-API-Key": "key-402"},
     )
     assert resp.status_code == 402
@@ -94,23 +105,23 @@ async def test_zero_credits_returns_402(client):
 async def test_success_decrements_credits_and_returns_result(client):
     _seed("key-200", credits=5)
     fake_result = {
-        "tool": "search_ip",
-        "target": "8.8.8.8",
+        "tool": "generate_dorks",
+        "target": "example.com",
         "timestamp": "2026-01-01T00:00:00+00:00",
-        "results": ["[+] IP: 8.8.8.8", "[+] Country: US"],
+        "results": ["[+] dork 1", "[+] dork 2"],
         "error": None,
     }
     with patch("cloud.tools.dispatch", new=AsyncMock(return_value=fake_result)):
         resp = await client.post(
             "/v1/enrich",
-            json={"tool": "search_ip", "target": "8.8.8.8"},
+            json={"tool": "generate_dorks", "target": "example.com"},
             headers={"X-API-Key": "key-200"},
         )
 
     assert resp.status_code == 200
     body = resp.json()
     assert body["credits_left"] == 4
-    assert body["results"] == ["[+] IP: 8.8.8.8", "[+] Country: US"]
+    assert body["results"] == ["[+] dork 1", "[+] dork 2"]
     assert body["error"] is None
     # Confirm the DB was actually mutated
     assert db._MEMORY_CUSTOMERS["key-200"].credits == 4
@@ -139,3 +150,188 @@ async def test_usage_returns_credits_and_plan(client):
     resp = await client.get("/v1/usage", headers={"X-API-Key": "key-usage"})
     assert resp.status_code == 200
     assert resp.json() == {"plan": "pro", "credits": 7}
+
+
+# ── (e) key store / retrieve roundtrip ───────────────────────────────────────
+
+
+async def test_key_store_retrieve_roundtrip():
+    _seed("key-roundtrip")
+    await keys.store_key("key-roundtrip", "ipinfo", "tok_abc123")
+
+    # Plaintext is recoverable
+    assert await keys.get_key("key-roundtrip", "ipinfo") == "tok_abc123"
+
+    # Raw store holds ciphertext, not plaintext
+    raw = keys._MEMORY_KEYS[("key-roundtrip", "ipinfo")]
+    assert b"tok_abc123" not in raw
+
+    # Masked value shows exactly last 4 chars
+    listed = await keys.list_keys("key-roundtrip")
+    assert listed == [{"provider": "ipinfo", "masked": "****c123"}]
+
+    # Short secret (≤4 chars) never leaks
+    assert keys.mask("ab") == "****"
+    assert keys.mask("abcd") == "****"
+    assert keys.mask("abcde") == "****bcde"
+
+
+# ── (f) enrich uses stored customer key ──────────────────────────────────────
+
+
+async def test_enrich_uses_stored_customer_key(client):
+    _seed("key-byok", credits=5)
+    await keys.store_key("key-byok", "ipinfo", "tok_abc123")
+
+    captured: list[str | None] = []
+
+    async def fake_dispatch(tool, target, api_key=None):
+        captured.append(api_key)
+        return {
+            "tool": tool,
+            "target": target,
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "results": ["[+] IP: 1.2.3.4"],
+            "error": None,
+        }
+
+    with patch("cloud.tools.dispatch", new=fake_dispatch):
+        resp = await client.post(
+            "/v1/enrich",
+            json={"tool": "search_ip", "target": "1.2.3.4"},
+            headers={"X-API-Key": "key-byok"},
+        )
+
+    assert resp.status_code == 200
+    assert captured == ["tok_abc123"]
+    assert db._MEMORY_CUSTOMERS["key-byok"].credits == 4
+
+
+# ── (g) missing customer key → 422, credits unchanged ────────────────────────
+
+
+async def test_missing_customer_key_returns_422_no_credit_deduct(client):
+    _seed("key-nokey", credits=5)
+    # No ipinfo key stored
+
+    resp = await client.post(
+        "/v1/enrich",
+        json={"tool": "search_ip", "target": "1.2.3.4"},
+        headers={"X-API-Key": "key-nokey"},
+    )
+
+    assert resp.status_code == 422
+    assert "ipinfo" in resp.json()["detail"]
+    # Credits must be untouched
+    assert db._MEMORY_CUSTOMERS["key-nokey"].credits == 5
+
+
+# ── (h) server-source tool reads key from env ────────────────────────────────
+
+
+async def test_server_source_reads_env_key(client):
+    _seed("key-server", credits=5)
+    captured: list[str | None] = []
+
+    async def fake_dispatch(tool, target, api_key=None):
+        captured.append(api_key)
+        return {
+            "tool": tool,
+            "target": target,
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "results": ["[IP2Location] IP: 1.2.3.4"],
+            "error": None,
+        }
+
+    with patch("cloud.tools.dispatch", new=fake_dispatch):
+        with patch.dict(os.environ, {"IP2LOCATION_API_KEY": "srv_key_xyz"}):
+            resp = await client.post(
+                "/v1/enrich",
+                json={"tool": "search_ip2location", "target": "1.2.3.4"},
+                headers={"X-API-Key": "key-server"},
+            )
+
+    assert resp.status_code == 200
+    assert captured == ["srv_key_xyz"]
+    assert db._MEMORY_CUSTOMERS["key-server"].credits == 4
+
+
+# ── (i) upstream error leaves credits unchanged ──────────────────────────────
+
+
+async def test_upstream_error_leaves_credits_unchanged(client):
+    _seed("key-err", credits=5)
+    await keys.store_key("key-err", "ipinfo", "tok_abc123")
+
+    error_result = {
+        "tool": "search_ip",
+        "target": "1.2.3.4",
+        "timestamp": "2026-01-01T00:00:00+00:00",
+        "results": ["Scan error: network failure"],
+        "error": None,
+    }
+
+    with patch("cloud.tools.dispatch", new=AsyncMock(return_value=error_result)):
+        resp = await client.post(
+            "/v1/enrich",
+            json={"tool": "search_ip", "target": "1.2.3.4"},
+            headers={"X-API-Key": "key-err"},
+        )
+
+    assert resp.status_code == 200
+    assert resp.json()["results"] == ["Scan error: network failure"]
+    assert resp.json()["credits_left"] == 5
+    assert db._MEMORY_CUSTOMERS["key-err"].credits == 5
+
+
+# ── (j) customer_optional: github works with and without stored key ───────────
+
+
+async def test_github_customer_optional_with_key(client):
+    _seed("key-gh-with", credits=5)
+    await keys.store_key("key-gh-with", "github", "ghp_mytoken")
+
+    captured: list[str | None] = []
+
+    async def fake_dispatch(tool, target, api_key=None):
+        captured.append(api_key)
+        return {
+            "tool": tool, "target": target,
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "results": ["[GitHub] Login: octocat"],
+            "error": None,
+        }
+
+    with patch("cloud.tools.dispatch", new=fake_dispatch):
+        resp = await client.post(
+            "/v1/enrich",
+            json={"tool": "search_github", "target": "octocat"},
+            headers={"X-API-Key": "key-gh-with"},
+        )
+
+    assert resp.status_code == 200
+    assert captured == ["ghp_mytoken"]
+
+
+async def test_github_customer_optional_without_key(client):
+    _seed("key-gh-none", credits=5)
+    # No github key stored — should still succeed (unauth call)
+
+    async def fake_dispatch(tool, target, api_key=None):
+        assert api_key is None  # unauth
+        return {
+            "tool": tool, "target": target,
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "results": ["[GitHub] Login: octocat"],
+            "error": None,
+        }
+
+    with patch("cloud.tools.dispatch", new=fake_dispatch):
+        resp = await client.post(
+            "/v1/enrich",
+            json={"tool": "search_github", "target": "octocat"},
+            headers={"X-API-Key": "key-gh-none"},
+        )
+
+    assert resp.status_code == 200
+    assert db._MEMORY_CUSTOMERS["key-gh-none"].credits == 4

@@ -78,16 +78,16 @@ def _format_results(data: dict) -> str:
     return "\n".join(lines)
 
 
-async def run_abuseipdb_osint(ip: str, timeout_seconds: int = _DEFAULT_TIMEOUT) -> str:
+async def run_abuseipdb_osint(ip: str, timeout_seconds: int = _DEFAULT_TIMEOUT, *, api_key: str | None = None) -> str:
     """Check an IP against the AbuseIPDB v2 API. Requires ABUSEIPDB_API_KEY."""
-    api_key = os.environ.get("ABUSEIPDB_API_KEY", "")
-    if not api_key:
+    resolved_key = api_key or os.environ.get("ABUSEIPDB_API_KEY", "")
+    if not resolved_key:
         return _MISSING_KEY_ERROR
     ip = ip.strip()
     if not _is_valid_ip(ip):
         return "Invalid IP address format."
     try:
-        payload = await _fetch_abuseipdb_data(ip, api_key, timeout_seconds)
+        payload = await _fetch_abuseipdb_data(ip, resolved_key, timeout_seconds)
         return _format_results(payload.get("data", {}))
     except asyncio.TimeoutError:
         return f"Scan error: AbuseIPDB request timed out after {timeout_seconds}s."
