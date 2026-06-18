@@ -42,6 +42,8 @@ from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
 from openosint.tools.search_virustotal import run_virustotal_osint
 from openosint.tools.search_whois import run_whois_osint
+from openosint.tools.search_footprint import run_footprint_osint
+from openosint.pivot import investigate_graph_for_agent
 
 logger = logging.getLogger(__name__)
 
@@ -348,6 +350,34 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
             "required": ["url"],
         },
     },
+    {
+        "name": "search_footprint",
+        "description": (
+            "Collect a target's public search-engine footprint via the Bright Data SERP API. "
+            "Detects the entity type (email, username, domain, phone, or full name) and runs "
+            "entity-type-aware Google queries, returning structured results (title, URL, snippet) "
+            "and Entity Correlation Graph nodes/edges for discovered domains and profiles. "
+            "Use when you need a targeted, type-aware SERP sweep rather than generic dork URLs. "
+            "Requires BRIGHTDATA_API_KEY and BRIGHTDATA_SERP_ZONE."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "target": {
+                    "type": "string",
+                    "description": (
+                        "OSINT target: email address, username, domain name, phone number, "
+                        "or full name."
+                    ),
+                },
+                "max_queries": {
+                    "type": "integer",
+                    "description": "Max SERP queries to run (default 3). Each query is billable.",
+                },
+            },
+            "required": ["target"],
+        },
+    },
 ]
 
 # ---------------------------------------------------------------------------
@@ -373,6 +403,20 @@ _TOOL_MAP: dict[str, Any] = {
     "search_dns": lambda a: run_dns_osint(a["domain"], timeout_seconds=10),
     "search_dorks_live": lambda a: run_dorks_live_osint(a["target"], timeout_seconds=30),
     "scrape_url": lambda a: run_scrape_url_osint(a["url"], timeout_seconds=60),
+    "search_footprint": lambda a: run_footprint_osint(
+        a["target"],
+        max_queries=int(a.get("max_queries", 3)),
+        timeout_seconds=30,
+    ),
+    # Conservative budgets: agent context runs inside a running event loop,
+    # so we await the coroutine directly — never asyncio.run().
+    "investigate_graph": lambda a: investigate_graph_for_agent(
+        a["seed"],
+        max_depth=int(a.get("max_depth", 1)),
+        max_entities=int(a.get("max_entities", 15)),
+        max_tool_calls=int(a.get("max_tool_calls", 20)),
+        timeout_seconds=int(a.get("timeout_seconds", 30)),
+    ),
 }
 
 SYSTEM_PROMPT = """You are OpenOSINT, an expert OSINT analyst assistant running in a terminal.
@@ -388,6 +432,7 @@ INVESTIGATION STRATEGY:
 - For a domain or IP infrastructure: use search_censys for certificate history and port data.
 - For a Shodan query or banners: use search_shodan.
 - For live Google search results on a target: use search_dorks_live (requires BRIGHTDATA_API_KEY).
+- For a targeted, entity-type-aware SERP sweep (email/username/domain/phone/name): use search_footprint (requires BRIGHTDATA_API_KEY). Prefer this over search_dorks_live when you know the entity type.
 - To fetch a URL that blocks direct access (Cloudflare/CAPTCHA): use scrape_url (requires BRIGHTDATA_API_KEY).
 - Chain tools intelligently: use findings from each step to decide the next.
 - Never run search_email or search_breach with a full name — only with actual email addresses.

@@ -1,13 +1,13 @@
 # openosint/mcp_server.py
 """
-OpenOSINT MCP Server — v2.20.0
+OpenOSINT MCP Server — v2.23.0
 
-Exposes all 18 OSINT tool capabilities plus multi-target investigation
+Exposes all 19 OSINT tool capabilities plus multi-target investigation
 to MCP-compliant AI clients over standard I/O. Tools include:
 search_email, search_username, search_breach, search_whois, search_ip,
 search_domain, generate_dorks, search_paste, search_phone, search_shodan,
 search_virustotal, search_censys, search_ip2location, search_abuseipdb,
-search_github, search_dns, search_dorks_live, scrape_url.
+search_github, search_dns, search_dorks_live, scrape_url, search_footprint.
 """
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ from openosint.tools.search_shodan import run_shodan_osint
 from openosint.tools.search_username import run_username_osint
 from openosint.tools.search_virustotal import run_virustotal_osint
 from openosint.tools.search_whois import run_whois_osint
+from openosint.tools.search_footprint import run_footprint_osint
 
 logging.basicConfig(level=logging.INFO, format="[MCP] %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -289,6 +290,29 @@ async def list_tools() -> list[Tool]:
             ),
         ),
         Tool(
+            name="search_footprint",
+            description=(
+                "Collect a target's public search-engine footprint via the Bright Data SERP API. "
+                "Detects entity type (email, username, domain, phone, or full name) and runs "
+                "entity-type-aware Google queries, returning structured results and Entity "
+                "Correlation Graph nodes/edges for discovered domains and profiles. "
+                "Requires BRIGHTDATA_API_KEY and BRIGHTDATA_SERP_ZONE env vars."
+            ),
+            inputSchema=_with_json(
+                {
+                    "type": "object",
+                    "properties": {
+                        "target": {"type": "string"},
+                        "max_queries": {
+                            "type": "integer",
+                            "description": "Max SERP queries (default 3, each is billable).",
+                        },
+                    },
+                    "required": ["target"],
+                }
+            ),
+        ),
+        Tool(
             name="investigate_multi",
             description=(
                 "Investigate multiple targets in parallel using the full OSINT tool chain. "
@@ -377,6 +401,14 @@ _HANDLERS: dict[str, tuple] = {
     "scrape_url": (
         lambda a: run_scrape_url_osint(a["url"], timeout_seconds=60),
         lambda a: a["url"],
+    ),
+    "search_footprint": (
+        lambda a: run_footprint_osint(
+            a["target"],
+            max_queries=int(a.get("max_queries", 3)),
+            timeout_seconds=30,
+        ),
+        lambda a: a["target"],
     ),
 }
 

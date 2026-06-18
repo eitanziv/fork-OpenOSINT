@@ -33,6 +33,7 @@ import sys  # noqa: E402
 
 from openosint.json_output import format_tool_result  # noqa: E402
 from openosint.tools.scrape_url import run_scrape_url_osint  # noqa: E402
+from openosint.tools.search_footprint import run_footprint_osint  # noqa: E402
 from openosint.tools.search_abuseipdb import run_abuseipdb_osint  # noqa: E402
 from openosint.tools.search_breach import run_breach_osint  # noqa: E402
 from openosint.tools.search_censys import run_censys_osint  # noqa: E402
@@ -429,6 +430,37 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Request timeout (default: 60).",
     )
 
+    # footprint
+    footprint_cmd = subparsers.add_parser(
+        "footprint",
+        help=(
+            "Entity-type-aware SERP footprint via Bright Data (no AI). "
+            "Requires BRIGHTDATA_API_KEY and BRIGHTDATA_SERP_ZONE."
+        ),
+    )
+    footprint_cmd.add_argument(
+        "target",
+        type=str,
+        metavar="TARGET",
+        help="Any OSINT target: email, username, domain, phone, or full name.",
+    )
+    footprint_cmd.add_argument(
+        "--max-queries",
+        type=int,
+        default=3,
+        metavar="N",
+        dest="max_queries",
+        help="Number of SERP queries to run (default: 3, each is billable).",
+    )
+    footprint_cmd.add_argument(
+        "-t",
+        "--timeout",
+        type=int,
+        default=30,
+        metavar="SECONDS",
+        help="Per-request timeout (default: 30).",
+    )
+
     # multi
     multi_cmd = subparsers.add_parser(
         "multi",
@@ -714,6 +746,22 @@ async def _handle_scrape(
         _print_result(result)
 
 
+async def _handle_footprint(
+    target: str,
+    max_queries: int = 3,
+    timeout: int = 30,
+    json_output: bool = False,
+) -> None:
+    print(f"[*] Footprint search: {target}", file=sys.stderr)
+    result = await run_footprint_osint(
+        target=target, max_queries=max_queries, timeout_seconds=timeout
+    )
+    if json_output:
+        _emit_json(format_tool_result("search_footprint", target, result))
+    else:
+        _print_result(result)
+
+
 async def _handle_multi(
     targets_arg: str,
     api_key: str | None = None,
@@ -937,6 +985,13 @@ async def _async_main() -> None:
         )
     elif args.command == "scrape":
         await _handle_scrape(args.url, timeout=args.timeout, json_output=json_output)
+    elif args.command == "footprint":
+        await _handle_footprint(
+            args.target,
+            max_queries=getattr(args, "max_queries", 3),
+            timeout=args.timeout,
+            json_output=json_output,
+        )
     elif args.command == "multi":
         await _handle_multi(
             args.targets, api_key=getattr(args, "api_key", None), is_pdf_disabled=is_pdf_disabled
