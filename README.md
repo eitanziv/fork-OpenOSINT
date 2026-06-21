@@ -102,7 +102,7 @@ OpenOSINT gives you the tooling. The **AI OSINT Prompt Pack** gives you the *met
 - One repeatable investigation flow + an ethics & legal primer
 - 7-page PDF · instant download · pairs directly with OpenOSINT
 
-**→ [Get the Prompt Pack](https://buy.polar.sh/polar_cl_0sipbBYjR01q4d9leCAtepteFDSGkPfy1TKoV3wIgkr?utm_source=github&utm_medium=readme&utm_campaign=promptpack)**
+**→ [Get the Prompt Pack](https://tommasodev.gumroad.com/l/ai-osint-prompt-pack)**
 
 _Buying it directly funds OpenOSINT's development. 🙏_
 
@@ -662,7 +662,7 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 
 ## Resources
 
-- **[AI OSINT Prompt Pack](https://buy.polar.sh/polar_cl_0sipbBYjR01q4d9leCAtepteFDSGkPfy1TKoV3wIgkr?utm_source=github&utm_medium=readme&utm_campaign=promptpack)** — 30+ ready-to-use prompts for faster, ethical OSINT investigations with any AI assistant. Built to pair with OpenOSINT.
+- **[AI OSINT Prompt Pack](https://tommasodev.gumroad.com/l/ai-osint-prompt-pack)** — 30+ ready-to-use prompts for faster, ethical OSINT investigations with any AI assistant. Built to pair with OpenOSINT.
 
 ## Sponsor this project
 
