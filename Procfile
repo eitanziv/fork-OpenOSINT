@@ -1,1 +1,1 @@
-web: uvicorn cloud.main:app --host 0.0.0.0 --port $
+uvicorn openosint.web_server:create_app --factory --port 8080
