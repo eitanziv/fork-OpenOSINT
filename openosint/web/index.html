@@ -134,42 +134,50 @@
       </button>
     </div>
 
-    <!-- AI backend -->
-    <p class="text-xs font-medium text-muted uppercase tracking-wider mb-3">AI Backend</p>
+    <!-- LLM Provider (BYOK — stored in sessionStorage) -->
+    <p class="text-xs font-medium text-muted uppercase tracking-wider mb-3">LLM Provider</p>
     <div class="flex gap-2 mb-4">
-      <button @click="settings.chatModel = 'claude'; saveLocalSettings()"
-              :class="settings.chatModel === 'claude'
-                ? 'bg-accent text-bg border-accent'
-                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+      <button @click="byok.provider = 'anthropic'; saveByok()"
+              :class="byok.provider === 'anthropic' ? 'bg-accent text-bg border-accent' : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
               class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
-        Claude (Anthropic)
+        Anthropic
       </button>
-      <button @click="settings.chatModel = 'ollama'; saveLocalSettings()"
-              :class="settings.chatModel === 'ollama'
-                ? 'bg-border text-primary border-app'
-                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+      <button @click="byok.provider = 'ollama'; saveByok()"
+              :class="byok.provider === 'ollama' ? 'bg-border text-primary border-app' : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
               class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
-        Ollama (local)
+        Ollama
       </button>
-      <button @click="settings.chatModel = 'openai'; saveLocalSettings()"
-              :class="settings.chatModel === 'openai'
-                ? 'bg-border text-primary border-app'
-                : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
+      <button @click="byok.provider = 'openai'; saveByok()"
+              :class="byok.provider === 'openai' ? 'bg-border text-primary border-app' : 'bg-app border-app text-secondary hover:border-app hover:text-primary'"
               class="flex-1 px-3 py-2 rounded-md border text-xs font-medium transition-all">
-        OpenAI API
+        OpenAI-compat
       </button>
     </div>
 
-    <div x-show="settings.chatModel === 'ollama'"
-         class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
+    <!-- Anthropic panel -->
+    <div x-show="byok.provider === 'anthropic'" class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
       <div>
-        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model name</label>
-        <input x-model="settings.ollamaModel" placeholder="llama3.2"
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">API Key</label>
+        <input x-model="byok.apiKey" @input="saveByok()" type="password" placeholder="sk-ant-api03-..."
                class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
       </div>
       <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model</label>
+        <input x-model="byok.model" @input="saveByok()" placeholder="claude-sonnet-4-6"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+    </div>
+
+    <!-- Ollama panel -->
+    <div x-show="byok.provider === 'ollama'" class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
+      <div>
         <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Host URL</label>
-        <input x-model="settings.ollamaHost" placeholder="http://localhost:11434"
+        <input x-model="byok.baseUrl" @input="saveByok()" placeholder="http://localhost:11434"
+               class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
+      </div>
+      <div>
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model</label>
+        <input x-model="byok.model" @input="saveByok()" placeholder="llama3.2"
                class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
       </div>
       <div class="flex items-center gap-3">
@@ -181,115 +189,118 @@
               :class="ollamaTestOk ? 'text-accent' : 'text-error'"
               class="text-xs font-mono"></span>
       </div>
+      <div x-show="window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'"
+           class="bg-surface border border-app rounded-md p-3 text-xs space-y-1">
+        <p class="text-warning font-medium">CORS setup required</p>
+        <p class="text-muted">Ollama blocks cross-origin requests by default. Start with:</p>
+        <pre class="font-mono text-accent text-xs mt-1 whitespace-pre-wrap break-all" x-text="`OLLAMA_ORIGINS=&quot;${window.location.origin}&quot; ollama serve`"></pre>
+        <p class="text-muted mt-1">macOS (persistent):</p>
+        <pre class="font-mono text-accent text-xs whitespace-pre-wrap break-all" x-text="`launchctl setenv OLLAMA_ORIGINS &quot;${window.location.origin}&quot;`"></pre>
+        <a href="https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server" target="_blank" rel="noopener"
+           class="text-accent-blue hover:underline text-xs mt-1 inline-block">Ollama CORS docs ↗</a>
+      </div>
     </div>
 
-    <div x-show="settings.chatModel === 'openai'"
-         class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
+    <!-- OpenAI-compat panel -->
+    <div x-show="byok.provider === 'openai'" class="bg-app border border-app rounded-md p-4 space-y-3 mb-4">
       <p class="text-muted text-xs leading-relaxed">
-        Any OpenAI-compatible endpoint (LiteLLM, llama-swap, vLLM, …). The model
-        must support tool/function calling. Leave fields blank to use the server's
-        environment defaults.
+        Any OpenAI-compatible endpoint (OpenRouter, LiteLLM, vLLM, llama.cpp, …).
+        <strong class="text-warning">api.openai.com blocks browser requests</strong> — use
+        <span class="font-mono text-accent text-xs">openrouter.ai/api/v1</span> instead.
       </p>
       <div>
         <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Base URL</label>
-        <input x-model="settings.openaiBaseUrl" @change="saveLocalSettings()" placeholder="http://localhost:4000/v1"
+        <input x-model="byok.baseUrl" @input="saveByok()" placeholder="https://openrouter.ai/api/v1"
                class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
       </div>
       <div>
-        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model name</label>
-        <input x-model="settings.openaiModel" @change="saveLocalSettings()" placeholder="gpt-4o-mini"
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">Model</label>
+        <input x-model="byok.model" @input="saveByok()" placeholder="openai/gpt-4o-mini"
                class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
       </div>
       <div>
-        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">API key (optional)</label>
-        <input x-model="settings.openaiApiKey" @change="saveLocalSettings()" type="password" placeholder="sk-..."
+        <label class="text-muted text-xs uppercase tracking-wider block mb-1.5">API Key</label>
+        <input x-model="byok.apiKey" @input="saveByok()" type="password" placeholder="sk-..."
                class="w-full bg-surface border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
-      </div>
-      <div class="flex items-center gap-3">
-        <button @click="testOpenai()"
-                class="px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary text-xs transition-all">
-          Test connection
-        </button>
-        <button @click="saveOpenai()"
-                class="px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary text-xs transition-all">
-          Save
-        </button>
-        <span x-show="openaiTestResult" x-text="openaiTestResult"
-              :class="openaiTestOk ? 'text-accent' : 'text-error'"
-              class="text-xs font-mono"></span>
       </div>
     </div>
 
+    <!-- Privacy notice -->
+    <p class="text-muted text-xs leading-relaxed mb-4 border border-app rounded-md px-3 py-2">
+      🔒 Keys stay in your browser (sessionStorage), sent only in-flight to the provider/proxy, never stored on our servers.
+    </p>
+
     <div class="border-t border-app my-5"></div>
 
-    <!-- API keys: primary -->
-    <p class="text-xs font-medium text-muted uppercase tracking-wider mb-3">API Keys</p>
-    <div class="space-y-3">
-      <template x-for="k in apiKeys.filter(k => k.primary)" :key="k.key">
-        <div>
-          <label class="text-secondary text-xs block mb-1" x-text="k.label"></label>
-          <div class="relative">
-            <input :type="showKeys[k.key] ? 'text' : 'password'"
-                   x-model="setupData[k.key]"
-                   :placeholder="k.placeholder"
-                   class="w-full bg-app border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors pr-9">
-            <button @click="showKeys[k.key] = !showKeys[k.key]"
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors">
-              <svg x-show="!showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg x-show="showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-              </svg>
-            </button>
-          </div>
+    <!-- Tool API Keys — driven by /api/tools required_keys -->
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-medium text-muted uppercase tracking-wider">Tool API Keys</p>
+      <button @click="clearAllKeys()"
+              class="text-xs text-error hover:text-red-400 transition-colors">
+        Clear all keys
+      </button>
+    </div>
+    <p class="text-muted text-xs mb-3">Optional — tools without keys fall back to server env vars or return a prompt.</p>
+    <div class="space-y-4">
+      <template x-for="t in tools.filter(t => t.required_keys && t.required_keys.length > 0)" :key="t.name">
+        <div class="border border-app rounded-md p-3 space-y-2">
+          <p class="text-xs font-mono text-secondary" x-text="(t.icon || '') + ' ' + t.name"></p>
+          <template x-for="k in t.required_keys" :key="k">
+            <div>
+              <label class="text-muted text-xs block mb-1" x-text="k"></label>
+              <div class="relative">
+                <input :type="showByokKeys[k] ? 'text' : 'password'"
+                       :value="byokToolKeys[k] || ''"
+                       @input="byokToolKeys[k] = $event.target.value; saveToolKeys()"
+                       :placeholder="'Enter ' + k"
+                       class="w-full bg-app border border-app rounded-md px-3 py-2 text-xs text-primary focus:outline-none transition-colors pr-9">
+                <button @click="showByokKeys[k] = !showByokKeys[k]"
+                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors">
+                  <svg x-show="!showByokKeys[k]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg x-show="showByokKeys[k]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
 
-    <!-- Advanced keys: collapsible -->
+    <!-- Server-side key save (self-hosters) -->
     <button @click="showAdvancedKeys = !showAdvancedKeys"
-            class="flex items-center gap-1.5 text-muted hover:text-secondary text-xs mt-3 transition-colors">
+            class="flex items-center gap-1.5 text-muted hover:text-secondary text-xs mt-4 transition-colors">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
            :class="showAdvancedKeys ? 'rotate-180' : ''"
            class="transition-transform">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
-      Advanced keys
+      Save keys to server (self-hosted only)
     </button>
     <div x-show="showAdvancedKeys" class="mt-3 space-y-3">
-      <template x-for="k in apiKeys.filter(k => !k.primary)" :key="k.key">
+      <p class="text-muted text-xs">Writes keys to the server's .env file. Only use on your own instance.</p>
+      <template x-for="k in serverApiKeys" :key="k.key">
         <div>
           <label class="text-secondary text-xs block mb-1" x-text="k.label"></label>
-          <div class="relative">
-            <input :type="showKeys[k.key] ? 'text' : 'password'"
-                   x-model="setupData[k.key]"
-                   :placeholder="k.placeholder"
-                   class="w-full bg-app border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors pr-9">
-            <button @click="showKeys[k.key] = !showKeys[k.key]"
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors">
-              <svg x-show="!showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-              <svg x-show="showKeys[k.key]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                <line x1="1" y1="1" x2="23" y2="23"/>
-              </svg>
-            </button>
-          </div>
+          <input :type="showKeys[k.key] ? 'text' : 'password'"
+                 x-model="setupData[k.key]"
+                 :placeholder="k.placeholder"
+                 class="w-full bg-app border border-app rounded-md px-3 py-2 text-sm text-primary focus:outline-none transition-colors">
         </div>
       </template>
-    </div>
-
-    <div class="flex items-center gap-3 mt-4">
-      <button @click="saveApiKeys()"
-              class="bg-accent hover:bg-accent-80 text-bg rounded-md px-4 py-2 text-xs font-medium transition-colors">
-        Save keys
-      </button>
-      <span x-show="setupMsg" x-text="setupMsg"
-            :class="setupOk ? 'text-accent' : 'text-error'"
-            class="text-xs font-mono"></span>
+      <div class="flex items-center gap-3">
+        <button @click="saveApiKeys()"
+                class="bg-accent hover:bg-accent-80 text-bg rounded-md px-4 py-2 text-xs font-medium transition-colors">
+          Save to server
+        </button>
+        <span x-show="setupMsg" x-text="setupMsg"
+              :class="setupOk ? 'text-accent' : 'text-error'"
+              class="text-xs font-mono"></span>
+      </div>
     </div>
 
     <!-- sponsors footer -->
@@ -328,10 +339,11 @@
   <div class="flex-1 flex justify-center">
     <button @click="showSettings = true"
             class="text-xs px-3 py-1 rounded-full border border-app text-secondary bg-transparent hover:text-primary transition-colors cursor-pointer">
-      <span x-show="aiBackend === 'claude'">Claude Sonnet 4.5</span>
-      <span x-show="aiBackend === 'ollama'">Ollama <span x-text="settings.ollamaModel"></span></span>
-      <span x-show="aiBackend === 'openai'">OpenAI <span x-text="settings.openaiModel || 'model'"></span></span>
-      <span x-show="aiBackend === 'none'">Not configured</span>
+      <span x-show="_isByokReady()">BYOK · <span x-text="byok.provider"></span> <span x-text="byok.model || ''"></span></span>
+      <span x-show="!_isByokReady() && aiBackend === 'claude'">Claude (server)</span>
+      <span x-show="!_isByokReady() && aiBackend === 'ollama'">Ollama (server)</span>
+      <span x-show="!_isByokReady() && aiBackend === 'openai'">OpenAI (server)</span>
+      <span x-show="!_isByokReady() && aiBackend === 'none'">Not configured — add key in Settings</span>
     </button>
   </div>
 
@@ -434,6 +446,7 @@
                       <button @click="part.collapsed = !part.collapsed"
                               class="flex items-center gap-2 min-w-0 flex-1 text-left">
                         <span class="font-mono text-xs text-secondary flex-none" x-text="part.tool"></span>
+                        <span x-show="part.isDemo" class="text-xs font-mono px-1 py-0.5 rounded border border-app text-warning bg-surface flex-none">demo</span>
                         <span class="text-muted text-xs truncate" x-text="part.input || ''"></span>
                       </button>
                       <div class="flex items-center gap-2 flex-none ml-3">
@@ -527,7 +540,7 @@
 <script>
 document.addEventListener('alpine:init', () => {
   Alpine.data('openosint', () => ({
-    version: '2.11.0',
+    version: '',
     messages: [],
     chatHistory: [],
     input: '',
@@ -544,8 +557,15 @@ document.addEventListener('alpine:init', () => {
     tools: [],
     featuredSponsors: [],
     showKeys: {},
+    showByokKeys: {},
     setupData: {},
     isLight: false,
+    agentLoopReady: false,
+
+    // BYOK LLM settings — persisted to sessionStorage (cleared on tab close)
+    byok: { provider: 'anthropic', apiKey: '', baseUrl: '', model: '' },
+    // Tool API keys — persisted to sessionStorage
+    byokToolKeys: {},
 
     settings: {
       chatModel: 'claude',
@@ -555,6 +575,14 @@ document.addEventListener('alpine:init', () => {
       openaiModel: '',
       openaiApiKey: '',
     },
+
+    // Legacy server-side key inputs (self-hosters)
+    serverApiKeys: [
+      { key: 'ANTHROPIC_API_KEY',   label: 'Anthropic API Key',      placeholder: 'sk-ant-api03-...' },
+      { key: 'HIBP_API_KEY',        label: 'HaveIBeenPwned API Key', placeholder: 'your-hibp-key'    },
+      { key: 'SHODAN_API_KEY',      label: 'Shodan API Key',         placeholder: 'your-shodan-key'  },
+      { key: 'VIRUSTOTAL_API_KEY',  label: 'VirusTotal API Key',     placeholder: 'your-vt-key'      },
+    ],
 
     suggestions: [
       {
@@ -579,28 +607,55 @@ document.addEventListener('alpine:init', () => {
       },
     ],
 
-    apiKeys: [
-      { key: 'ANTHROPIC_API_KEY',   label: 'Anthropic API Key',      placeholder: 'sk-ant-api03-...',      primary: true  },
-      { key: 'HIBP_API_KEY',        label: 'HaveIBeenPwned API Key', placeholder: 'your-hibp-key',         primary: false },
-      { key: 'IPINFO_TOKEN',        label: 'IPInfo Token',           placeholder: 'your-ipinfo-token',     primary: false },
-      { key: 'IP2LOCATION_API_KEY', label: 'IP2Location API Key',    placeholder: 'your-ip2location-key',  primary: false },
-      { key: 'CENSYS_API_ID',       label: 'Censys API ID',          placeholder: 'censys-api-id',         primary: false },
-      { key: 'CENSYS_SECRET',       label: 'Censys API Secret',      placeholder: 'censys-api-secret',     primary: false },
-      { key: 'SHODAN_API_KEY',      label: 'Shodan API Key',         placeholder: 'your-shodan-key',       primary: false },
-      { key: 'VIRUSTOTAL_API_KEY',  label: 'VirusTotal API Key',     placeholder: 'your-virustotal-key',   primary: false },
-    ],
-
     // lifecycle
     init() {
       this.loadSettings();
+      this.loadByok();
       const theme = localStorage.getItem('openosint-theme') || 'dark';
       this.isLight = theme === 'light';
       if (this.isLight) document.documentElement.classList.add('light');
+      // Guard for ES module race (amendment 5): agent-loop.js may not be ready yet.
+      if (window._agentLoopReady) {
+        this.agentLoopReady = true;
+      } else {
+        document.addEventListener('agent-loop-ready', () => { this.agentLoopReady = true; }, { once: true });
+      }
       this.$nextTick(() => {
         this.fetchHealth();
         this.fetchSponsors();
         document.getElementById('chat-input')?.focus();
       });
+    },
+
+    // BYOK sessionStorage helpers
+    loadByok() {
+      try {
+        const b = sessionStorage.getItem('openosint_byok');
+        if (b) Object.assign(this.byok, JSON.parse(b));
+        const tk = sessionStorage.getItem('openosint_tool_keys');
+        if (tk) this.byokToolKeys = JSON.parse(tk);
+      } catch {}
+    },
+    saveByok() {
+      try { sessionStorage.setItem('openosint_byok', JSON.stringify(this.byok)); } catch {}
+    },
+    saveToolKeys() {
+      try { sessionStorage.setItem('openosint_tool_keys', JSON.stringify(this.byokToolKeys)); } catch {}
+    },
+    clearAllKeys() {
+      this.byok = { provider: this.byok.provider, apiKey: '', baseUrl: '', model: '' };
+      this.byokToolKeys = {};
+      try {
+        sessionStorage.removeItem('openosint_byok');
+        sessionStorage.removeItem('openosint_tool_keys');
+      } catch {}
+    },
+
+    // Route to client-side ONLY when the selected provider actually has its credential.
+    _isByokReady() {
+      const p = this.byok.provider;
+      if (p === 'ollama') return this.ollamaTestOk;
+      return !!(this.byok.apiKey || '').trim();
     },
 
     // theme toggle
@@ -671,17 +726,27 @@ document.addEventListener('alpine:init', () => {
       const text = this.input.trim();
       if (!text || this.isStreaming) return;
 
-      try {
-        const testResp = await fetch('/api/chat/test');
-        if (testResp.ok) {
-          const td = await testResp.json();
-          this.aiBackend = td.backend || 'none';
-        }
-      } catch {}
+      const useClient = this._isByokReady();
 
-      if (this.aiBackend === 'none') {
-        this._pushError('No AI backend configured. Add your ANTHROPIC_API_KEY in Settings, configure an OpenAI-compatible endpoint (OPENAI_BASE_URL), or start Ollama and select it as the backend.');
+      // Amendment 5: guard against race where module hasn't loaded yet.
+      if (useClient && !this.agentLoopReady) {
+        this._pushError('Agent loop is initializing — please try again in a moment.');
         return;
+      }
+
+      // Only probe the server backend when client path isn't available.
+      if (!useClient) {
+        try {
+          const testResp = await fetch('/api/chat/test');
+          if (testResp.ok) {
+            const td = await testResp.json();
+            this.aiBackend = td.backend || 'none';
+          }
+        } catch {}
+        if (this.aiBackend === 'none') {
+          this._pushError('No AI backend configured. Add an LLM provider key in Settings (for BYOK), or configure ANTHROPIC_API_KEY / OPENAI_BASE_URL on the server.');
+          return;
+        }
       }
 
       this.input = '';
@@ -695,13 +760,112 @@ document.addEventListener('alpine:init', () => {
       this.chatHistory.push({ role: 'user', content: text });
 
       this.messages.push({ role: 'assistant', parts: [] });
-      // Track the index so all mutations go through the reactive proxy (this.messages[msgIdx])
-      // rather than a raw object reference — raw mutations bypass Alpine's reactivity and
-      // prevent the DOM from updating (x-for / x-show never re-run).
       const msgIdx = this.messages.length - 1;
       this.isStreaming = true;
       this.scrollToBottom();
 
+      if (useClient) {
+        await this._sendMessageClientSide(text, msgIdx);
+      } else {
+        await this._sendMessageServerSide(text, msgIdx);
+      }
+
+      this.isStreaming = false;
+      this.scrollToBottom();
+    },
+
+    // Client-side BYOK loop via agent-loop.js
+    async _sendMessageClientSide(text, msgIdx) {
+      const adapterSettings = {
+        provider: this.byok.provider,
+        apiKey: this.byok.apiKey,
+        baseUrl: this.byok.baseUrl || (this.byok.provider === 'ollama' ? 'http://localhost:11434' : ''),
+        model: this.byok.model,
+      };
+
+      let fullText = '';
+
+      const onEvent = (evt) => {
+        if (evt.type === 'text') {
+          const parts = this.messages[msgIdx].parts;
+          const last = parts.at(-1);
+          if (last?.type === 'text' && last.streaming) {
+            last.content += evt.content;
+          } else {
+            parts.push({ type: 'text', content: evt.content, streaming: true });
+          }
+          fullText += evt.content;
+          this.scrollToBottom();
+
+        } else if (evt.type === 'tool_start') {
+          // Close any open streaming text part first.
+          const parts = this.messages[msgIdx].parts;
+          const last = parts.at(-1);
+          if (last?.streaming) last.streaming = false;
+          parts.push({ type: 'tool', tool: evt.tool, input: evt.input || '', status: 'running', output: '', elapsed: null, collapsed: false, isDemo: false });
+          this.scrollToBottom();
+
+        } else if (evt.type === 'tool_result') {
+          const parts = this.messages[msgIdx].parts;
+          for (let i = parts.length - 1; i >= 0; i--) {
+            if (parts[i].type === 'tool' && parts[i].tool === evt.tool && parts[i].status === 'running') {
+              parts[i].output = evt.output || '';
+              parts[i].elapsed = evt.elapsed;
+              parts[i].status = evt.isError ? 'error' : 'done';
+              parts[i].isDemo = evt.isDemo || false;
+              break;
+            }
+          }
+          this.scrollToBottom();
+
+        } else if (evt.type === 'key_required') {
+          const keys = (evt.missing_keys || []).join(', ');
+          this.messages[msgIdx].parts.push({ type: 'text', content: `**Key required:** ${keys} — add it in Settings → Tool API Keys, then retry.`, streaming: false });
+          this.showSettings = true;
+          this.scrollToBottom();
+
+        } else if (evt.type === 'max_rounds') {
+          // Amendment 3: surface cap clearly, never die silently.
+          const parts = this.messages[msgIdx].parts;
+          const last = parts.at(-1);
+          if (last?.streaming) last.streaming = false;
+          parts.push({ type: 'text', content: 'Investigation reached the maximum of 8 tool-use rounds. Results above may be partial — refine your query or ask a follow-up.', streaming: false });
+          this.scrollToBottom();
+
+        } else if (evt.type === 'error') {
+          const parts = this.messages[msgIdx].parts;
+          const last = parts.at(-1);
+          if (last?.streaming) last.streaming = false;
+          parts.push({ type: 'text', content: `Error: ${evt.message}`, streaming: false });
+          this.scrollToBottom();
+
+        } else if (evt.type === 'done') {
+          const parts = this.messages[msgIdx].parts;
+          const last = parts.at(-1);
+          if (last?.streaming) last.streaming = false;
+        }
+      };
+
+      await window._runAgentLoop(
+        text,
+        this.chatHistory.slice(0, -1),
+        adapterSettings,
+        this.byokToolKeys,
+        onEvent,
+      );
+
+      // Close any unclosed streaming part.
+      const last = this.messages[msgIdx].parts.at(-1);
+      if (last?.streaming) last.streaming = false;
+
+      if (this.messages[msgIdx].parts.length === 0) {
+        this.messages[msgIdx].parts.push({ type: 'text', content: 'No response received.', streaming: false });
+      }
+      if (fullText.trim()) this.chatHistory.push({ role: 'assistant', content: fullText.trim() });
+    },
+
+    // Server-side SSE path (self-hosters with env keys)
+    async _sendMessageServerSide(text, msgIdx) {
       const payload = {
         message: text,
         history: this.chatHistory.slice(0, -1),
@@ -793,6 +957,11 @@ document.addEventListener('alpine:init', () => {
             } else if (evt.type === 'done') {
               flushText(); break outer;
 
+            } else if (evt.type === 'max_rounds') {
+              flushText();
+              this.messages[msgIdx].parts.push({ type: 'text', content: 'Investigation reached the maximum of 8 tool-use rounds. Results above may be partial.', streaming: false });
+              break outer;
+
             } else if (evt.type === 'error') {
               flushText();
               this.messages[msgIdx].parts.push({ type: 'text', content: `Error: ${evt.message}`, streaming: false });
@@ -816,9 +985,6 @@ document.addEventListener('alpine:init', () => {
       } catch (err) {
         this.messages[msgIdx].parts.push({ type: 'text', content: `Connection error: ${err.message}`, streaming: false });
       }
-
-      this.isStreaming = false;
-      this.scrollToBottom();
     },
 
     _pushError(msg) {
@@ -906,18 +1072,20 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Ollama test
+    // Ollama test — uses byok.baseUrl so the CORS test reflects the actual host.
     async testOllama() {
       this.ollamaTestResult = 'Testing...';
       this.ollamaTestOk = false;
+      const host = (this.byok.baseUrl || 'http://localhost:11434').replace(/\/$/, '');
       try {
-        const r = await fetch(this.settings.ollamaHost.replace(/\/$/, '') + '/api/tags', {
-          signal: AbortSignal.timeout(3000),
-        });
+        const r = await fetch(host + '/api/tags', { signal: AbortSignal.timeout(4000) });
         if (r.ok) { this.ollamaTestOk = true; this.ollamaTestResult = 'Connected'; }
-        else        { this.ollamaTestResult = `HTTP ${r.status}`; }
+        else       { this.ollamaTestResult = `HTTP ${r.status}`; }
       } catch (e) {
-        this.ollamaTestResult = e.message;
+        this.ollamaTestOk = false;
+        this.ollamaTestResult = e.message.includes('Failed to fetch')
+          ? 'CORS blocked or unreachable — see setup hint below'
+          : e.message;
       }
     },
 
@@ -984,6 +1152,13 @@ document.addEventListener('alpine:init', () => {
   }));
 });
 </script>
+<script src="/static/config.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+<script type="module">
+  import { runAgentLoop } from '/static/agent-loop.js';
+  window._runAgentLoop = runAgentLoop;
+  window._agentLoopReady = true;
+  document.dispatchEvent(new Event('agent-loop-ready'));
+</script>
 </body>
 </html>
