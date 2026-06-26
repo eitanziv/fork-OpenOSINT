@@ -4,6 +4,11 @@
 window.OPENOSINT_CONFIG = Object.assign(
   {
     proxyBaseUrl: '',   // '' = same-origin; set to full URL for cross-origin proxy
+    authGate: {
+      enabled:     true,                      // false = skip gate entirely (e.g. local dev)
+      exitUrl:     'https://openosint.tech',  // where "No — exit" redirects; must be https://
+      rememberAck: true,                      // false = show gate on every visit
+    },
   },
   window.OPENOSINT_CONFIG || {}
 );

@@ -109,7 +109,41 @@
 </head>
 
 <body class="bg-app" style="font-family:'Inter',system-ui,sans-serif;">
-<div x-data="openosint" class="h-screen flex flex-col font-sans text-sm text-primary overflow-hidden">
+
+<!-- AUTHORIZATION GATE — separate Alpine island, fail-closed
+     showGate defaults true; init() clears it only when the gate should be skipped. -->
+<div x-data="authGate">
+  <div x-show="showGate" x-cloak
+       @keydown="handleKey($event)"
+       id="auth-gate-overlay"
+       role="dialog" aria-modal="true" aria-labelledby="gate-title"
+       class="fixed inset-0 z-[200] bg-overlay flex items-center justify-center p-4">
+    <div id="auth-gate-modal"
+         class="bg-surface border border-app rounded-lg max-w-md w-full p-6 shadow-xl c-fadein">
+      <h2 id="gate-title" class="text-base font-medium text-primary mb-3">Authorized use only</h2>
+      <p class="text-sm text-secondary leading-relaxed mb-6">
+        OpenOSINT is for lawful OSINT on targets you are authorized to investigate. By
+        continuing you confirm you have the necessary authorization and accept the
+        <a href="https://openosint.tech/demo/terms/" target="_blank" rel="noopener"
+           class="text-accent-blue hover:underline">Terms of Use</a>.
+      </p>
+      <div class="flex gap-3">
+        <button id="gate-accept"
+                @click="accept()"
+                class="flex-1 px-4 py-2.5 rounded-md bg-accent text-bg text-sm font-medium border border-accent hover:bg-accent-80 transition-colors">
+          I have authorization — continue
+        </button>
+        <button id="gate-exit"
+                @click="exit()"
+                class="flex-1 px-4 py-2.5 rounded-md border border-app text-secondary text-sm font-medium hover:text-primary hover:bg-border-50 transition-colors">
+          No — exit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="main-app" x-data="openosint" class="h-screen flex flex-col font-sans text-sm text-primary overflow-hidden">
 
 <!-- SETTINGS MODAL -->
 <div x-show="showSettings" x-cloak
@@ -574,6 +608,22 @@
 
 </div><!-- end main content row -->
 
+<!-- NOTICE BAR — shown after gate is passed; dismissed via localStorage -->
+<div x-show="gatePassed && !noticeDismissed" x-cloak
+     class="flex-none bg-surface border-t border-app px-4 py-2.5 flex items-center gap-3 text-xs">
+  <p class="flex-1 leading-relaxed text-secondary">
+    Your API keys live in your browser session only (sessionStorage, auto-cleared on tab close).
+    Theme preference and acceptance of these notices are saved in localStorage. No tracking or analytics.
+    &nbsp;<a href="https://openosint.tech/demo/privacy/" target="_blank" rel="noopener"
+       class="text-accent-blue hover:underline whitespace-nowrap">Privacy &amp; Cookie Notice</a>&nbsp;&middot;&nbsp;<a href="https://openosint.tech/demo/terms/" target="_blank" rel="noopener"
+       class="text-accent-blue hover:underline whitespace-nowrap">Terms of Use</a>
+  </p>
+  <button @click="dismissNotice()"
+          class="flex-none px-3 py-1.5 rounded-md border border-app text-secondary hover:text-primary hover:bg-border-50 transition-colors whitespace-nowrap">
+    Got it
+  </button>
+</div>
+
 <!-- INPUT BAR -->
 <div class="flex-none bg-app border-t border-app px-4 py-3">
   <div class="max-w-2xl mx-auto">
@@ -608,7 +658,62 @@
 
 <!-- ALPINE COMPONENT — must come before Alpine CDN -->
 <script>
+// Rejects any non-absolute-https exit URL to prevent open-redirect via injected config value.
+function _validExitUrl(url) {
+  try { const u = new URL(url); if (u.protocol === 'https:') return u.href; } catch {}
+  return 'https://openosint.tech';
+}
+
 document.addEventListener('alpine:init', () => {
+  // Authorization gate — fail-closed: showGate defaults true so the app stays
+  // behind the gate until init() confirms the user has already acknowledged.
+  Alpine.data('authGate', () => ({
+    showGate: true,
+
+    _cfg() {
+      const c = (window.OPENOSINT_CONFIG || {}).authGate || {};
+      return {
+        enabled:     c.enabled !== false,
+        exitUrl:     _validExitUrl(c.exitUrl),
+        rememberAck: c.rememberAck !== false,
+      };
+    },
+
+    init() {
+      const cfg = this._cfg();
+      if (!cfg.enabled)                                              { this.showGate = false; return; }
+      if (cfg.rememberAck && localStorage.getItem('openosint-ack')) { this.showGate = false; return; }
+      document.getElementById('main-app')?.setAttribute('inert', '');
+      this.$nextTick(() => document.getElementById('gate-accept')?.focus());
+    },
+
+    accept() {
+      const cfg = this._cfg();
+      if (cfg.rememberAck) localStorage.setItem('openosint-ack', '1');
+      this.showGate = false;
+      document.getElementById('main-app')?.removeAttribute('inert');
+      document.dispatchEvent(new CustomEvent('gate-accepted'));
+      this.$nextTick(() => document.getElementById('chat-input')?.focus());
+    },
+
+    exit() { window.location.href = this._cfg().exitUrl; },
+
+    handleKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); return; }
+      if (e.key !== 'Tab') return;
+      const modal = document.getElementById('auth-gate-modal');
+      if (!modal) return;
+      const focusable = [...modal.querySelectorAll('a[href], button:not([disabled])')];
+      if (!focusable.length) return;
+      e.preventDefault();
+      const idx = focusable.indexOf(document.activeElement);
+      const next = e.shiftKey
+        ? focusable[(idx - 1 + focusable.length) % focusable.length]
+        : focusable[(idx + 1) % focusable.length];
+      next?.focus();
+    },
+  }));
+
   Alpine.data('openosint', () => ({
     version: '',
     messages: [],
@@ -637,6 +742,10 @@ document.addEventListener('alpine:init', () => {
     graphNodeCapHit: false,
     graphPivotNode: null,
     currentTarget: '',
+
+    // Gate / notice bar state (initialized from localStorage in init())
+    gatePassed: false,
+    noticeDismissed: false,
 
     // BYOK LLM settings — persisted to sessionStorage (cleared on tab close)
     byok: { provider: 'anthropic', apiKey: '', baseUrl: '', model: '' },
@@ -685,6 +794,9 @@ document.addEventListener('alpine:init', () => {
 
     // lifecycle
     init() {
+      this.gatePassed = !!localStorage.getItem('openosint-ack');
+      this.noticeDismissed = !!localStorage.getItem('openosint-notice');
+      document.addEventListener('gate-accepted', () => { this.gatePassed = true; }, { once: true });
       this.loadSettings();
       this.loadByok();
       const theme = localStorage.getItem('openosint-theme') || 'dark';
@@ -728,6 +840,10 @@ document.addEventListener('alpine:init', () => {
     },
     saveToolKeys() {
       try { sessionStorage.setItem('openosint_tool_keys', JSON.stringify(this.byokToolKeys)); } catch {}
+    },
+    dismissNotice() {
+      this.noticeDismissed = true;
+      localStorage.setItem('openosint-notice', '1');
     },
     clearAllKeys() {
       this.byok = { provider: this.byok.provider, apiKey: '', baseUrl: '', model: '' };
