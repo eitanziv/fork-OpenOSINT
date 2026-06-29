@@ -499,6 +499,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Do not open a browser tab automatically.",
     )
 
+    # prompts
+    subparsers.add_parser(
+        "prompts",
+        help="Show information about the AI OSINT Prompt Pack.",
+    )
+
     # history
     history_parser = subparsers.add_parser(
         "history",
@@ -1045,6 +1051,15 @@ async def _async_main() -> None:
         _handle_history(args)
     elif args.command == "sponsors":
         _handle_sponsors()
+    elif args.command == "prompts":
+        print(
+            "AI OSINT Prompt Pack — 30+ structured prompts for AI-assisted OSINT.\n"
+            "Covers email, username, domain, IP, phone, company due diligence,\n"
+            "image clues, verification, and reporting.\n"
+            "Follows a real process: scope → collect → pivot → verify → document.\n"
+            "\n"
+            "  https://tommasodev.gumroad.com/l/ai-osint-prompt-pack?ref=cli"
+        )
     else:
         parser.print_help()
         sys.exit(1)
