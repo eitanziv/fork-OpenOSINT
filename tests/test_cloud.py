@@ -19,6 +19,7 @@ Coverage:
 """
 from __future__ import annotations
 
+import dataclasses
 import os
 from unittest.mock import AsyncMock, patch
 
@@ -27,7 +28,7 @@ from httpx import ASGITransport, AsyncClient
 
 from cloud import db, keys
 from cloud.main import create_app
-from cloud.routes.webhook import _handle_benefit_grant
+from cloud.routes.webhook import _handle_benefit_grant, _handle_checkout_updated
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,9 @@ def reset_memory_store():
     db._MEMORY_CUSTOMERS.clear()
     db._MEMORY_BY_POLAR_ID.clear()
     db._MEMORY_EVENTS.clear()
+    db._MEMORY_USERS.clear()
+    db._MEMORY_USERS_BY_IDENTITY.clear()
+    db._next_user_id = 1
     keys._MEMORY_KEYS.clear()
     # Reset cached Fernet so tests always get a fresh ephemeral key
     keys._fernet = None
@@ -176,6 +180,38 @@ async def test_key_store_retrieve_roundtrip():
     assert keys.mask("ab") == "****"
     assert keys.mask("abcd") == "****"
     assert keys.mask("abcde") == "****bcde"
+
+
+# ── (e1) MultiFernet rotation: old secrets still decrypt, writes use new key ──
+
+
+async def test_multifernet_rotation_old_secret_decrypts_and_reencrypts():
+    from cryptography.fernet import Fernet, InvalidToken
+
+    key_a = Fernet.generate_key().decode()
+    key_b = Fernet.generate_key().decode()
+
+    # Pre-rotation: single key A, matches today's single-key setups.
+    with patch.dict(os.environ, {"CONFIG_ENCRYPTION_KEY": key_a}):
+        keys._fernet = None
+        await keys.store_key("key-rotate", "ipinfo", "secret_under_a")
+
+    # Rotate: B becomes primary, A kept only so old ciphertext still decrypts.
+    with patch.dict(os.environ, {"CONFIG_ENCRYPTION_KEY": f"{key_b},{key_a}"}):
+        keys._fernet = None
+
+        # Old secret, encrypted under A, still readable post-rotation.
+        assert await keys.get_key("key-rotate", "ipinfo") == "secret_under_a"
+
+        # Re-encrypts under the new primary (B) on next write.
+        await keys.store_key("key-rotate", "ipinfo", "secret_under_b")
+        new_ciphertext = keys._MEMORY_KEYS[("key-rotate", "ipinfo")]
+        assert Fernet(key_b).decrypt(new_ciphertext) == b"secret_under_b"
+        with pytest.raises(InvalidToken):
+            Fernet(key_a).decrypt(new_ciphertext)  # not readable by the old key alone
+
+        # Public API round-trips correctly against the new ciphertext too.
+        assert await keys.get_key("key-rotate", "ipinfo") == "secret_under_b"
 
 
 # ── (e2) censys compound secret: bad format rejected, good format round-trips ─
@@ -519,3 +555,418 @@ async def test_shodan_attribution_reaches_rest_response_body(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["results"] == ["[Shodan] Host: 1.2.3.4", "Data provided by Shodan (shodan.io)."]
+
+
+# ── (m) webhook signature verification accepts real Polar-style secrets ─────
+
+
+def _sign_polar_style(msg_id: str, msg_timestamp: str, body: bytes, key: bytes) -> str:
+    """Mirror production exactly: sign over raw body bytes, no text round-trip."""
+    import hashlib
+    import hmac
+    import base64
+
+    signed_content = f"{msg_id}.{msg_timestamp}.".encode() + body
+    sig = base64.b64encode(hmac.new(key, signed_content, hashlib.sha256).digest()).decode()
+    return f"v1,{sig}"
+
+
+def test_verify_webhook_signature_accepts_padded_whsec_secret():
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode()}"  # correctly padded
+    msg_id = "msg_test123"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_1"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
+def test_verify_webhook_signature_accepts_unpadded_whsec_secret():
+    """The failure mode this fix targets: Polar-style secrets are commonly
+    issued without base64 padding. The old _decode_secret crashed on this
+    (caught upstream, but always rejected the real signature)."""
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode().rstrip('=')}"  # unpadded
+    msg_id = "msg_test456"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_2"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
+def test_verify_webhook_signature_rejects_wrong_secret():
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    wrong_key = b"a-completely-different-secret!!"
+    secret = f"whsec_{base64.b64encode(wrong_key).decode()}"
+    msg_id = "msg_test789"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_3"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is False
+
+
+def test_verify_webhook_signature_signs_raw_bytes_not_reserialized_json():
+    """Locks in: we HMAC the exact raw body bytes, never a reparsed/re-dumped
+    form. A signature computed over the raw bytes must reject a differently
+    -whitespaced re-serialization of the same logical JSON payload."""
+    import base64
+    import json
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode()}"
+    msg_id = "msg_test_raw"
+    msg_timestamp = str(int(time.time()))
+
+    raw_body = b'{"type":"checkout.updated","data":{"customer_id":"cust_4"}}'
+    reserialized_body = json.dumps(json.loads(raw_body), indent=2).encode()
+    assert raw_body != reserialized_body  # sanity: the two forms really differ
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, raw_body, key)
+
+    # Signature computed over raw_body verifies raw_body...
+    assert verify_webhook_signature(raw_body, msg_id, msg_timestamp, signature, secret) is True
+    # ...but must NOT verify a re-serialized form of the same logical payload.
+    assert verify_webhook_signature(reserialized_body, msg_id, msg_timestamp, signature, secret) is False
+
+
+# ── (n) checkout.updated <-> benefit_grant order-independent rendezvous ─────
+
+
+async def test_checkout_before_benefit_grant_completes_link_on_benefit_grant():
+    user = await db.get_or_create_user("github", "gh_1", "a@example.com")
+
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_order_a",
+        "metadata": {"reference_id": str(user.id)},
+    })
+
+    linked = await db.get_user(user.id)
+    assert linked.polar_customer_id == "cust_order_a"
+    assert linked.customer_api_key is None  # no customers row yet
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="FULLKEY_A")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_order_a",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_a"},
+        })
+
+    completed = await db.get_user(user.id)
+    assert completed.customer_api_key == "FULLKEY_A"
+
+
+async def test_benefit_grant_before_checkout_completes_link_on_checkout():
+    user = await db.get_or_create_user("github", "gh_2", "b@example.com")
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="FULLKEY_B")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_order_b",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_b"},
+        })
+
+    # Customer created; user not linked yet since checkout.updated hasn't landed
+    assert db._MEMORY_CUSTOMERS["FULLKEY_B"].polar_customer_id == "cust_order_b"
+    pre_link = await db.get_user(user.id)
+    assert pre_link.polar_customer_id is None
+
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_order_b",
+        "metadata": {"reference_id": str(user.id)},
+    })
+
+    linked = await db.get_user(user.id)
+    assert linked.polar_customer_id == "cust_order_b"
+    assert linked.customer_api_key == "FULLKEY_B"
+
+
+async def test_checkout_updated_missing_or_nonnumeric_reference_id_skips_link_silently():
+    # No metadata / reference_id at all — must not crash.
+    await _handle_checkout_updated({"status": "succeeded", "customer_id": "cust_order_c"})
+    assert db._MEMORY_USERS == {}
+
+    # Non-numeric reference_id (shouldn't happen, but must not crash either).
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_order_c",
+        "metadata": {"reference_id": "not-a-number"},
+    })
+    assert db._MEMORY_USERS == {}
+
+    # benefit_grant still creates the customer independently of the failed link.
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="FULLKEY_C")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_order_c",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_c"},
+        })
+    assert db._MEMORY_CUSTOMERS["FULLKEY_C"].polar_customer_id == "cust_order_c"
+
+
+async def test_checkout_updated_non_terminal_status_does_not_link():
+    user = await db.get_or_create_user("github", "gh_4", "d@example.com")
+
+    await _handle_checkout_updated({
+        "status": "open",
+        "customer_id": "cust_order_d",
+        "metadata": {"reference_id": str(user.id)},
+    })
+
+    untouched = await db.get_user(user.id)
+    assert untouched.polar_customer_id is None
+    assert untouched.customer_api_key is None
+
+
+async def test_conflicting_customer_api_key_claim_is_logged_not_raised():
+    user1 = await db.get_or_create_user("github", "gh_5a", "e1@example.com")
+    user2 = await db.get_or_create_user("github", "gh_5b", "e2@example.com")
+
+    # user1 is already fully linked to a paid customer.
+    db._MEMORY_USERS[user1.id] = dataclasses.replace(
+        user1, polar_customer_id="cust_shared", customer_api_key="SHARED_KEY"
+    )
+    db._MEMORY_CUSTOMERS["SHARED_KEY"] = db.Customer(
+        api_key="SHARED_KEY", polar_customer_id="cust_shared", credits=100, plan="pro"
+    )
+    db._MEMORY_BY_POLAR_ID["cust_shared"] = "SHARED_KEY"
+
+    # user2's checkout resolves to the SAME polar_customer_id — the conflict case.
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_shared",
+        "metadata": {"reference_id": str(user2.id)},
+    })
+
+    linked_user2 = await db.get_user(user2.id)
+    assert linked_user2.polar_customer_id == "cust_shared"
+    assert linked_user2.customer_api_key is None  # conflict — not linked, no raise
+
+    linked_user1 = await db.get_user(user1.id)
+    assert linked_user1.customer_api_key == "SHARED_KEY"  # unaffected
+
+
+# ── (o) re-subscription overwrites the stale key; cross-user claim rejected ─
+
+
+async def test_resubscription_overwrites_customer_api_key_on_benefit_grant_side():
+    user = await db.get_or_create_user("github", "gh_6", "f@example.com")
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="OLD_KEY")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_resub",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_old"},
+        })
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_resub",
+        "metadata": {"reference_id": str(user.id)},
+    })
+    assert (await db.get_user(user.id)).customer_api_key == "OLD_KEY"
+
+    # Re-subscription: benefit_grant fires again for the SAME customer_id
+    # with a NEW license key — must overwrite, not freeze on OLD_KEY.
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="NEW_KEY")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_resub",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_new"},
+        })
+
+    assert (await db.get_user(user.id)).customer_api_key == "NEW_KEY"
+
+
+async def test_resubscription_overwrites_customer_api_key_on_checkout_side():
+    user = await db.get_or_create_user("github", "gh_7", "g@example.com")
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="OLD_KEY2")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_resub2",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_old2"},
+        })
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_resub2",
+        "metadata": {"reference_id": str(user.id)},
+    })
+    assert (await db.get_user(user.id)).customer_api_key == "OLD_KEY2"
+
+    # New checkout completes for the same customer AFTER a fresh benefit_grant
+    # already rotated the customers-table key — checkout side must pick up
+    # the new value too, not keep coalescing onto the stale one.
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="NEW_KEY2")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_resub2",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_new2"},
+        })
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_resub2",
+        "metadata": {"reference_id": str(user.id)},
+    })
+
+    assert (await db.get_user(user.id)).customer_api_key == "NEW_KEY2"
+
+
+async def test_cross_user_key_claim_rejected_on_benefit_grant_side():
+    user1 = await db.get_or_create_user("github", "gh_8a", "h1@example.com")
+    user2 = await db.get_or_create_user("github", "gh_8b", "h2@example.com")
+
+    # Both users are (incorrectly, edge-case) linked to the same polar_customer_id.
+    db._MEMORY_USERS[user1.id] = dataclasses.replace(
+        user1, polar_customer_id="cust_dup", customer_api_key="KEY_ONE"
+    )
+    db._MEMORY_USERS[user2.id] = dataclasses.replace(
+        user2, polar_customer_id="cust_dup", customer_api_key="KEY_TWO"
+    )
+
+    # benefit_grant fires with a key that collides with user1's existing key.
+    # user1's row is a same-value no-op; user2's row must be rejected since it
+    # would collide with user1's now-current value.
+    await db.link_customer_api_key_by_polar_id("cust_dup", "KEY_ONE")
+
+    assert (await db.get_user(user1.id)).customer_api_key == "KEY_ONE"
+    assert (await db.get_user(user2.id)).customer_api_key == "KEY_TWO"  # untouched, not overwritten
+
+
+async def test_dashboard_requires_login(client):
+    resp = await client.get("/dashboard")
+    assert resp.status_code == 401
+
+
+async def test_oauth_callback_redirects_to_dashboard_and_dashboard_loads(client, monkeypatch):
+    from cloud.routes import oauth as oauth_routes
+
+    class FakeOAuthClient:
+        async def authorize_access_token(self, request):
+            return {"userinfo": {"sub": "google_dash", "email": "dash@example.com"}}
+
+    monkeypatch.setattr(oauth_routes.oauth, "create_client", lambda provider: FakeOAuthClient())
+
+    login_resp = await client.get("/auth/callback/google", follow_redirects=False)
+    assert login_resp.status_code in (302, 307)
+    assert login_resp.headers["location"] == "/dashboard"
+
+    dash_resp = await client.get("/dashboard")
+    assert dash_resp.status_code == 200
+    assert "text/html" in dash_resp.headers["content-type"]
+
+
+async def test_checkout_return_requires_login(client):
+    resp = await client.get("/checkout/return")
+    assert resp.status_code == 401
+
+
+async def test_checkout_return_renders_for_logged_in_user(client, monkeypatch):
+    from cloud.routes import oauth as oauth_routes
+
+    class FakeOAuthClient:
+        async def authorize_access_token(self, request):
+            return {"userinfo": {"sub": "google_return", "email": "return@example.com"}}
+
+    monkeypatch.setattr(oauth_routes.oauth, "create_client", lambda provider: FakeOAuthClient())
+    await client.get("/auth/callback/google", follow_redirects=False)
+
+    resp = await client.get("/checkout/return")
+    assert resp.status_code == 200
+    assert "text/html" in resp.headers["content-type"]
+
+
+async def _login(client, monkeypatch, sub: str, email: str) -> None:
+    """Shared helper: log the test client in as a fresh OAuth user (session
+    cookie persists on the client for subsequent requests)."""
+    from cloud.routes import oauth as oauth_routes
+
+    class FakeOAuthClient:
+        async def authorize_access_token(self, request):
+            return {"userinfo": {"sub": sub, "email": email}}
+
+    monkeypatch.setattr(oauth_routes.oauth, "create_client", lambda provider: FakeOAuthClient())
+    await client.get("/auth/callback/google", follow_redirects=False)
+
+
+async def test_link_key_requires_login(client):
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "whatever"})
+    assert resp.status_code == 401
+
+
+async def test_link_key_not_found_returns_404(client, monkeypatch):
+    await _login(client, monkeypatch, "google_link_404", "l404@example.com")
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "no-such-key"})
+    assert resp.status_code == 404
+
+
+async def test_link_key_success(client, monkeypatch):
+    _seed("key-link-ok", credits=5)
+    await _login(client, monkeypatch, "google_link_ok", "lok@example.com")
+
+    resp = await client.post("/v1/link-key", json={"customer_api_key": "key-link-ok"})
+    assert resp.status_code == 200
+
+    me = await client.get("/v1/me")
+    assert me.json()["linked"] is True
+
+
+async def test_link_key_conflict_returns_409(client, monkeypatch):
+    _seed("key-link-conflict", credits=5)
+
+    await _login(client, monkeypatch, "google_link_c1", "c1@example.com")
+    first = await client.post("/v1/link-key", json={"customer_api_key": "key-link-conflict"})
+    assert first.status_code == 200
+
+    await client.get("/auth/logout")
+    await _login(client, monkeypatch, "google_link_c2", "c2@example.com")
+    second = await client.post("/v1/link-key", json={"customer_api_key": "key-link-conflict"})
+    assert second.status_code == 409
+
+
+async def test_first_time_link_via_checkout_still_works_after_coalesce_flip():
+    """Base case for link_checkout_to_user's COALESCE flip: a user who has
+    never been linked before (customer_api_key is None) must still pick up
+    the key on the first checkout.updated, same as before the re-subscription
+    fix reordered the COALESCE arguments."""
+    user = await db.get_or_create_user("github", "gh_9", "i@example.com")
+
+    with patch("cloud.polar.fetch_license_key", new=AsyncMock(return_value="FIRSTKEY")):
+        await _handle_benefit_grant({
+            "customer_id": "cust_first",
+            "benefit_id": "benefit_payg",
+            "properties": {"license_key_id": "lk_first"},
+        })
+    assert (await db.get_user(user.id)).customer_api_key is None  # not linked yet
+
+    await _handle_checkout_updated({
+        "status": "succeeded",
+        "customer_id": "cust_first",
+        "metadata": {"reference_id": str(user.id)},
+    })
+
+    assert (await db.get_user(user.id)).customer_api_key == "FIRSTKEY"
