@@ -677,6 +677,46 @@ def test_verify_webhook_signature_signs_raw_bytes_not_reserialized_json():
     assert verify_webhook_signature(reserialized_body, msg_id, msg_timestamp, signature, secret) is False
 
 
+def test_verify_webhook_signature_accepts_base64_encoded_signing_key():
+    """Polar's Standard Webhooks reference format: the secret IS base64 and
+    the HMAC key is the *decoded* bytes, not the literal whsec_ chars."""
+    import base64
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    key = b"a-32-byte-ish-signing-secret!!!"
+    secret = f"whsec_{base64.b64encode(key).decode()}"
+    msg_id = "msg_test_b64key"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"checkout.updated","data":{"customer_id":"cust_b64"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
+def test_verify_webhook_signature_accepts_raw_plaintext_whsec_secret():
+    """The exact bug this fix targets: some Polar secrets are raw/plaintext
+    after the whsec_ prefix, and Polar signs with those literal chars as the
+    HMAC key. The old code always base64-decoded the secret first, which
+    silently produced a *different*, wrong 32-byte key (key_len=32) instead
+    of the real raw key — so every real signature mismatched."""
+    import time
+
+    from cloud.polar import verify_webhook_signature
+
+    secret = "whsec_NZQYdH5RET05QioJANQpEVsMk1wlkpzNcxOpC3jFxuV"
+    key = secret[len("whsec_"):].encode()  # Polar signs with the raw chars
+    msg_id = "msg_test_rawkey"
+    msg_timestamp = str(int(time.time()))
+    body = b'{"type":"benefit_grant.created","data":{"customer_id":"cust_raw"}}'
+
+    signature = _sign_polar_style(msg_id, msg_timestamp, body, key)
+
+    assert verify_webhook_signature(body, msg_id, msg_timestamp, signature, secret) is True
+
+
 # ── (n) checkout.updated <-> benefit_grant order-independent rendezvous ─────
 
 
