@@ -18,7 +18,7 @@ mcp-name: io.github.OpenOSINT/openosint
 [![MCP](https://img.shields.io/badge/protocol-MCP-blueviolet?style=flat-square)](https://modelcontextprotocol.io/)
 [![MCP Registry](https://img.shields.io/badge/MCP_Registry-published-blueviolet?style=flat-square)](https://registry.modelcontextprotocol.io/servers/io.github.OpenOSINT/openosint)
 [![Sponsored by IP2Location](https://img.shields.io/badge/sponsored%20by-IP2Location.io-FF6B35?style=flat-square)](https://www.ip2location.io)
-[![Sponsored by RapidProxy](https://img.shields.io/badge/sponsored%20by-RapidProxy-F2622B?style=flat-square)](https://rapidproxy.io)
+[![Sponsored by RapidProxy](https://img.shields.io/badge/sponsored%20by-RapidProxy-F2622B?style=flat-square)](https://www.rapidproxy.io/?ref=openosint)
 
 </div>
 
@@ -108,12 +108,12 @@ openosint > investigate target@example.com
 <sub><em>Enhanced IP geolocation, ISP, VPN/Proxy/Tor detection.</em></sub>
 </td>
 <td align="center" valign="top" width="200">
-<a href="https://rapidproxy.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured" rel="noopener sponsored">
+<a href="https://www.rapidproxy.io/?ref=openosint" rel="noopener sponsored">
 <img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/rapidproxy-logo.png" alt="RapidProxy — residential proxy provider" width="140">
 </a><br>
 <sub><b>RapidProxy</b></sub><br>
 <sub>Residential Proxies</sub><br>
-<sub><em>Rotating residential proxies for collection workflows — 90M+ IPs across 220+ locations.</em></sub>
+<sub><em>90M+ rotating residential IPs across 200+ countries — smart rotation & geo-targeting.</em></sub>
 </td>
 <td valign="top">
 <b>Your logo here</b><br>
@@ -585,7 +585,7 @@ Set `ANTHROPIC_API_KEY` (and optionally `HIBP_API_KEY`, `IPINFO_TOKEN`) in a `.e
 | Service | URL | Tool | Tier | Auth |
 |---------|-----|------|------|------|
 | IP2Location.io | https://www.ip2location.io | `search_ip2location` | Featured (sponsored) | API key — free tier |
-| RapidProxy | https://rapidproxy.io | — | Featured (sponsored) | — |
+| RapidProxy | https://www.rapidproxy.io/?ref=openosint | — | Featured (sponsored) | — |
 | AbuseIPDB | https://www.abuseipdb.com | `search_abuseipdb` | Community | API key — free tier |
 | Censys | https://censys.io | `search_censys` | Community | API key — free tier |
 | GitHub | https://github.com | `search_github` | Community | Token optional |
@@ -656,13 +656,13 @@ Open categories: **proxy detection** · **breach/credential data** · **threat &
 
 Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection. Powers `search_ip2location`.
 
-<a href="https://rapidproxy.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured" rel="noopener sponsored">
+<a href="https://www.rapidproxy.io/?ref=openosint" rel="noopener sponsored">
 <img src="https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/rapidproxy-logo.png" alt="RapidProxy" width="140">
 </a>
 
-**[RapidProxy](https://rapidproxy.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — Featured Integration · Residential Proxies
+**[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration · Residential Proxies
 
-Rotating residential proxies for collection workflows — 90M+ IPs across 220+ locations.
+90M+ rotating residential IPs across 200+ countries — smart rotation, geo-targeting, non-expiring traffic. 10% off with code RAPID10.
 
 <!-- SPONSORS:END -->
 

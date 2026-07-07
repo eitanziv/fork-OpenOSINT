@@ -85,7 +85,7 @@ CLI banner, Web UI, and `openosint sponsors` update automatically at runtime.
 
 **[IP2Location.io](https://www.ip2location.io)** — Featured Integration (IP Geolocation & IP Intelligence)
 
-**[RapidProxy](https://rapidproxy.io/?utm_source=openosint&utm_medium=readme&utm_campaign=featured)** — Featured Integration (Residential Proxies)
+**[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration (Residential Proxies)
 
 ## Contact
 
