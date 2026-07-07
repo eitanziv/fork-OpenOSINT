@@ -662,7 +662,13 @@ Enhanced IP geolocation, ISP, VPN/Proxy/Tor, and datacenter detection. Powers `s
 
 **[RapidProxy](https://www.rapidproxy.io/?ref=openosint)** — Featured Integration · Residential Proxies
 
-90M+ rotating residential IPs across 200+ countries — smart rotation, geo-targeting, non-expiring traffic. 10% off with code RAPID10.
+**Reliable Residential Proxies for Data Collection & Automation**
+
+**Access 90M+ real residential IPs across 200+ countries with smart rotation, geo-targeting, high-concurrency support, and non-expiring traffic.**
+
+**Use Cases:** Web Scraping · Data Collection · AI Automation · Developer Tools
+
+🎁 10% discount with code **RAPID10** → [Start Free Testing](https://www.rapidproxy.io/?ref=openosint)
 
 <!-- SPONSORS:END -->
 
