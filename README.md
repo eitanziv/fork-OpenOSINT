@@ -56,6 +56,8 @@ openosint web
 openosint email target@example.com
 ```
 
+New to OSINT methodology? Grab the [free 5-prompt starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-quickstart&utm_campaign=free_prompts) before your first run.
+
 ## Usage
 
 Start the REPL and investigate any target — the agent decides which tools to run and chains them on findings:
@@ -624,9 +626,9 @@ New to AI-assisted OSINT? The **free starter set** gives you 5 structured prompt
 
 - Scope → Collect → Pivot → Verify → Document
 - Works with any AI assistant (Claude, ChatGPT, Gemini)
-- Free PDF, instant download — enter $0, no card needed
+- Free PDF, instant download — just your email
 
-**→ [Free download on Gumroad](https://tommasodev.gumroad.com/l/free-osint-prompts?utm_source=github&utm_medium=readme&utm_campaign=free_starter)**
+**→ [Get the free starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-resources&utm_campaign=free_prompts)**
 
 ### AI OSINT Prompt Pack
 
@@ -635,6 +637,8 @@ OpenOSINT gives you the tooling. The **AI OSINT Prompt Pack** gives you the meth
 - Email, username, domain, IP, phone, company due-diligence, image & reporting prompts
 - One repeatable investigation flow + an ethics & legal primer
 - 7-page PDF · instant download · pairs directly with OpenOSINT
+
+Not ready to buy? Start with the [free 5-prompt starter set](https://openosint.tech/free-prompts?utm_source=github&utm_medium=readme-promptpack&utm_campaign=free_prompts).
 
 **→ [Get the Prompt Pack ($29)](https://tommasodev.gumroad.com/l/ai-osint-prompt-pack?utm_source=github&utm_medium=readme&utm_campaign=prompt_pack)**
 
