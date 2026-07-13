@@ -179,7 +179,7 @@ Return findings as &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x25
 <h2 id="get">GET THE FREE PROMPTS</h2>
 <div class="indent">
 <p>Enter $0 on Gumroad. No card, no account required. The PDF downloads immediately.</p>
-<a class="fp-cta-btn" href="https://tommasodev.gumroad.com/l/free-osint-prompts?wanted=true&amp;utm_source=site&amp;utm_medium=free_prompts_page&amp;utm_campaign=free_starter" target="_blank" rel="noopener">Download free PDF &rarr;</a>
+<a class="fp-cta-btn fp-gumroad-link" href="https://tommasodev.gumroad.com/l/free-osint-prompts?wanted=true&amp;utm_source=site&amp;utm_medium=free_prompts_page&amp;utm_campaign=free_starter" target="_blank" rel="noopener">Download free PDF &rarr;</a>
 <p style="margin-top:14px;font-size:12px;color:#666;">From the maker of OpenOSINT, an open-source OSINT framework used by security researchers and analysts worldwide. No spam &mdash; unsubscribe anytime.</p>
 </div>
 
@@ -188,7 +188,7 @@ Return findings as &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x25
 <h2 id="full-pack">FULL PACK</h2>
 <div class="indent">
 <p>The free set walks the investigation loop once. The <b>AI OSINT Prompt Pack</b> has 30+ prompts covering every investigation type: email, username, domain, IP, phone, company due diligence, image analysis, verification patterns, and final reporting &mdash; plus the complete methodology and an ethics and legal primer.</p>
-<p><a href="https://tommasodev.gumroad.com/l/ai-osint-prompt-pack?utm_source=site&amp;utm_medium=free_prompts_page&amp;utm_campaign=prompt_pack" target="_blank" rel="noopener" style="font-weight:bold;color:#9fb0c3;">Buy the full pack ($29) &#8599;</a></p>
+<p><a class="fp-gumroad-link" href="https://tommasodev.gumroad.com/l/ai-osint-prompt-pack?utm_source=site&amp;utm_medium=free_prompts_page&amp;utm_campaign=prompt_pack" target="_blank" rel="noopener" style="font-weight:bold;color:#9fb0c3;">Buy the full pack ($29) &#8599;</a></p>
 </div>
 
 <hr>
@@ -211,5 +211,28 @@ Return findings as &#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x2588;&#x25
 </div>
 
 </div>
+
+<script>
+(function () {
+  // ponytail: forwards the incoming referrer's UTM params onto the outbound
+  // Gumroad links so per-placement conversion survives the /free-prompts hop
+  // instead of collapsing into the hardcoded utm_medium=free_prompts_page.
+  var qs = new URLSearchParams(window.location.search);
+  var overrides = {};
+  ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (key) {
+    var value = qs.get(key);
+    if (value) overrides[key] = value;
+  });
+  if (!Object.keys(overrides).length) return;
+
+  document.querySelectorAll('a.fp-gumroad-link').forEach(function (link) {
+    var url = new URL(link.href);
+    Object.keys(overrides).forEach(function (key) {
+      url.searchParams.set(key, overrides[key]);
+    });
+    link.href = url.toString();
+  });
+})();
+</script>
 </body>
 </html>
