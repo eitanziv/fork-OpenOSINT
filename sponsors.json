@@ -8,5 +8,13 @@
     "tool": "search_ip2location",
     "category": "IP Geolocation & Threat Intelligence",
     "contact": "sales@ip2location.com"
+  },
+  {
+    "name": "RapidProxy",
+    "tagline": "Reliable Residential Proxies for Data Collection & Automation — 90M+ IPs across 200+ countries. 10% off: RAPID10.",
+    "url": "https://www.rapidproxy.io/?ref=openosint",
+    "logo": "https://raw.githubusercontent.com/OpenOSINT/OpenOSINT/main/docs/assets/rapidproxy-logo.svg",
+    "tier": "featured",
+    "category": "Residential Proxies"
   }
 ]

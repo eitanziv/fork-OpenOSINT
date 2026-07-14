@@ -17,6 +17,7 @@ Coverage:
 from __future__ import annotations
 
 import contextlib
+import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -36,8 +37,6 @@ from cloud.tools import ALLOW_LIST as _REST_ALLOW_LIST
 @pytest.fixture(autouse=True)
 def reset_memory_store():
     db._MEMORY_CUSTOMERS.clear()
-    db._MEMORY_BY_POLAR_ID.clear()
-    db._MEMORY_EVENTS.clear()
     keys._MEMORY_KEYS.clear()
     keys._fernet = None
     yield
@@ -46,7 +45,6 @@ def reset_memory_store():
 def _seed(api_key: str, credits: int = 10, plan: str = "starter") -> db.Customer:
     customer = db.Customer(
         api_key=api_key,
-        polar_customer_id="polar_test",
         credits=credits,
         plan=plan,
     )
@@ -111,6 +109,8 @@ _EXPECTED_MCP_TOOLS = {
     "search_abuseipdb",
     "search_dns",
     "search_domain",
+    "search_virustotal",
+    "search_censys",
 }
 
 
@@ -126,7 +126,7 @@ def test_mcp_tool_set_matches_rest_allow_list_keys():
 
 def test_unlisted_tools_not_in_mcp():
     registered = {t.name for t in _mcp._tool_manager.list_tools()}
-    for blocked in ("search_email", "search_username", "search_breach", "search_shodan"):
+    for blocked in ("search_email", "search_username", "search_breach", "search_paste"):
         assert blocked not in registered
 
 
@@ -292,3 +292,28 @@ async def test_auth_middleware_sets_none_for_missing_header():
 
     await middleware(scope, _noop_receive, _noop_send)
     assert captured[0] is None
+
+
+# ── (i) Shodan attribution reaches the MCP text result ───────────────────────
+
+
+async def test_shodan_attribution_reaches_mcp_text_result():
+    """_run_mcp_tool's return value is the exact string FastMCP wraps as the
+    tool's TextContent block — what an MCP client renders to the user. Real
+    dispatch() runs here; only the low-level upstream call is mocked.
+
+    search_shodan is deliberately absent from ALLOW_LIST (no SHODAN_API_KEY
+    in prod yet, see cloud/tools.py) and no longer registered as an MCP tool
+    — reinject it into ALLOW_LIST for this test only so _run_mcp_tool's
+    dispatch() call still exercises the real attribution path."""
+    from cloud.tools import _SHODAN_ENTRY
+
+    customer = _seed("key-mcp-shodan-attr", credits=10)
+
+    with patch.dict("cloud.tools.ALLOW_LIST", {"search_shodan": _SHODAN_ENTRY}):
+        with patch("cloud.tools.run_shodan_osint", new=AsyncMock(return_value="[Shodan] Host: 1.2.3.4")):
+            with patch.dict(os.environ, {"SHODAN_API_KEY": "srv_shodan_key"}):
+                async with _as_customer(customer):
+                    result = await _run_mcp_tool("search_shodan", "1.2.3.4")
+
+    assert result == "[Shodan] Host: 1.2.3.4\nData provided by Shodan (shodan.io)."

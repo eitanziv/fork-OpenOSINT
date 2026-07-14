@@ -36,12 +36,18 @@ config.yml
 # Exception: GitHub metadata files named config.yml are not secrets
 !.github/**
 
-# OpenOSINT generated output
-reports/
+# OpenOSINT generated output — ignore contents, keep directory placeholder
+reports/*
+!reports/.gitkeep
 *.cast
 
 # Media: generated GIFs and MP4s (tapes are versioned, output is not)
 media/output/
+
+# Demo recording pipeline — raw output and frame PNGs are never committed
+# Only the final encoded docs/assets/demo-web-graph.{gif,mp4,png} are committed
+scripts/record-demo/out/
+scripts/record-demo/node_modules/
 
 # Distribution / packaging
 .installed.cfg
@@ -139,7 +145,6 @@ coverage.json
 researcher*.txt
 testuser*.txt
 *.osint.txt
-reports/
 
 # Empty placeholder files
 # openosint/index.html.txt is 0 bytes — accidentally created stub
@@ -153,4 +158,5 @@ openosint/index.html.txt
 openosint.tape
 
 
-_leadmagnet/
+# _leadmagnet/ source is tracked; only ignore the local build artifact
+_leadmagnet/openosint-free-prompts.pdf

@@ -18,6 +18,7 @@ import logging
 import os
 import re
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError
 
 logger = logging.getLogger(__name__)
@@ -117,7 +118,7 @@ def _format_domain_result(results: list, domain: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT) -> str:
+async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT, *, api_keys: dict[str, str] | None = None) -> str:
     """
     Run a Censys lookup for *target*.
 
@@ -131,8 +132,9 @@ async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT)
     str
         Formatted result string or descriptive error message.
     """
-    api_id = os.environ.get("CENSYS_API_ID", "")
-    api_secret = os.environ.get("CENSYS_SECRET", "")
+    _k = api_keys or {}
+    api_id = _k.get("CENSYS_API_ID") or os.environ.get("CENSYS_API_ID", "")
+    api_secret = _k.get("CENSYS_SECRET") or os.environ.get("CENSYS_SECRET", "")
 
     if not api_id:
         return (
@@ -155,7 +157,7 @@ async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT)
 
     try:
         if _is_ip_address(target):
-            hosts = CensysHosts(api_id=api_id, api_secret=api_secret)
+            hosts = CensysHosts(api_id=api_id, api_secret=api_secret, proxies=get_requests_proxies())
             data = await asyncio.wait_for(
                 asyncio.to_thread(hosts.view, target),
                 timeout=float(timeout_seconds),
@@ -165,7 +167,7 @@ async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT)
             try:
                 from censys.search import CensysCerts  # type: ignore
 
-                certs = CensysCerts(api_id=api_id, api_secret=api_secret)
+                certs = CensysCerts(api_id=api_id, api_secret=api_secret, proxies=get_requests_proxies())
                 query = f"parsed.names: {target}"
                 search_results: list = await asyncio.wait_for(
                     asyncio.to_thread(
@@ -185,7 +187,7 @@ async def run_censys_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT)
                     timeout=float(timeout_seconds),
                 )
             except ImportError:
-                hosts = CensysHosts(api_id=api_id, api_secret=api_secret)
+                hosts = CensysHosts(api_id=api_id, api_secret=api_secret, proxies=get_requests_proxies())
                 search_results = await asyncio.wait_for(
                     asyncio.to_thread(
                         lambda: list(

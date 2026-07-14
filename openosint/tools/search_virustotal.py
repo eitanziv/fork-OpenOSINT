@@ -24,6 +24,7 @@ import re
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -179,6 +180,7 @@ def _lookup_ip(api_key: str, ip: str, timeout: int) -> str:
             f"{_BASE_URL}/ip_addresses/{ip}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc
@@ -192,6 +194,7 @@ def _lookup_domain(api_key: str, domain: str, timeout: int) -> str:
             f"{_BASE_URL}/domains/{domain}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc
@@ -208,6 +211,7 @@ async def _lookup_url(api_key: str, target_url: str, timeout: int) -> str:
             headers=_headers(api_key),
             data={"url": target_url},
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error submitting URL to VirusTotal: {exc}") from exc
@@ -227,6 +231,7 @@ async def _lookup_url(api_key: str, target_url: str, timeout: int) -> str:
                 f"{_BASE_URL}/analyses/{analysis_id}",
                 headers=_headers(api_key),
                 timeout=timeout,
+                proxies=get_requests_proxies(),
             )
         except requests.RequestException as exc:
             raise OSINTError(f"Network error polling VirusTotal analysis: {exc}") from exc
@@ -245,6 +250,7 @@ def _lookup_hash(api_key: str, file_hash: str, timeout: int) -> str:
             f"{_BASE_URL}/files/{file_hash}",
             headers=_headers(api_key),
             timeout=timeout,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying VirusTotal: {exc}") from exc
@@ -257,7 +263,7 @@ def _lookup_hash(api_key: str, file_hash: str, timeout: int) -> str:
 # ---------------------------------------------------------------------------
 
 
-async def run_virustotal_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT) -> str:
+async def run_virustotal_osint(target: str, timeout_seconds: int = _DEFAULT_TIMEOUT, *, api_key: str | None = None) -> str:
     """
     Check *target* against VirusTotal's 70+ antivirus engines.
 
@@ -271,8 +277,8 @@ async def run_virustotal_osint(target: str, timeout_seconds: int = _DEFAULT_TIME
     str
         Formatted result string or descriptive error message.
     """
-    api_key = os.environ.get("VIRUSTOTAL_API_KEY", "")
-    if not api_key:
+    resolved_key = api_key or os.environ.get("VIRUSTOTAL_API_KEY", "")
+    if not resolved_key:
         return (
             "Scan error: VIRUSTOTAL_API_KEY environment variable is not set. "
             "Get a free key at https://www.virustotal.com/gui/my-apikey"
@@ -284,13 +290,13 @@ async def run_virustotal_osint(target: str, timeout_seconds: int = _DEFAULT_TIME
 
     try:
         if input_type == "ip":
-            result = await asyncio.to_thread(_lookup_ip, api_key, target, timeout_seconds)
+            result = await asyncio.to_thread(_lookup_ip, resolved_key, target, timeout_seconds)
         elif input_type == "domain":
-            result = await asyncio.to_thread(_lookup_domain, api_key, target, timeout_seconds)
+            result = await asyncio.to_thread(_lookup_domain, resolved_key, target, timeout_seconds)
         elif input_type == "url":
-            result = await _lookup_url(api_key, target, timeout_seconds)
+            result = await _lookup_url(resolved_key, target, timeout_seconds)
         else:
-            result = await asyncio.to_thread(_lookup_hash, api_key, target, timeout_seconds)
+            result = await asyncio.to_thread(_lookup_hash, resolved_key, target, timeout_seconds)
         logger.info("VirusTotal lookup complete for: %s", target)
         return result
     except OSINTError as exc:

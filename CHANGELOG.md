@@ -7,6 +7,39 @@ OpenOSINT adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.25.0] — 2026-07-13
+
+### Security
+- **[GHSA-cqr4-hcfp-m6m4, CVSS 10.0]** `POST /api/setup` was reachable by any
+  network caller and wrote arbitrary key/value pairs straight into
+  `os.environ` and `.env` — including `OPENAI_BASE_URL`, letting a remote
+  attacker redirect outbound chat traffic (and its auth header) to attacker
+  infrastructure.
+  - `/api/setup` now requires the caller be loopback, or present a token
+    matching `OPENOSINT_SETUP_TOKEN` (unset by default — remote setup is
+    off unless an operator opts in).
+  - Replaced arbitrary key writes with an explicit allowlist; unknown keys
+    are dropped and reported back.
+  - `OPENAI_BASE_URL` is validated as a well-formed `http(s)` URL before
+    being applied.
+  - CLI/web server now default to a `127.0.0.1` bind and refuse `0.0.0.0`
+    (or any non-loopback host) without `--allow-remote` /
+    `OPENOSINT_ALLOW_REMOTE=1`.
+  - Thanks to **@avishaigo-commits** and **@yotampe-pluto** for the report.
+
+### Added
+- **Web UI: live entity-graph panel** — client-side graph view of
+  investigation results (Cytoscape-based renderer), with a BYOK settings
+  panel, browser-side agent loop, and provider adapters for
+  Anthropic/OpenAI-compatible/Ollama backends.
+- **Deterministic investigation playbooks** — `domain`, `ip`, and `person`
+  recipes that chain tool calls into a repeatable, formatted report without
+  relying on the AI agent's judgment for step ordering.
+- **Global upstream-proxy support** — HTTP/SOCKS5 proxy configuration for
+  all web-facing tools.
+
+---
+
 ## [2.20.0] — 2026-06-11
 
 ### Added

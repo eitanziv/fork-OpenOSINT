@@ -1,0 +1,28 @@
+{
+  "signedContributors": [
+    {
+      "name": "SonoTommy",
+      "id": 148005572,
+      "comment_id": 4842237809,
+      "created_at": "2026-06-30T10:11:39Z",
+      "repoId": 1230831838,
+      "pullRequestNo": 14
+    },
+    {
+      "name": "SonoTommy",
+      "id": 148005572,
+      "comment_id": 4842294477,
+      "created_at": "2026-06-30T10:17:30Z",
+      "repoId": 1230831838,
+      "pullRequestNo": 14
+    },
+    {
+      "name": "kriptoburak",
+      "id": 8755484,
+      "comment_id": 4936833449,
+      "created_at": "2026-07-10T15:22:42Z",
+      "repoId": 1230831838,
+      "pullRequestNo": 25
+    }
+  ]
+}

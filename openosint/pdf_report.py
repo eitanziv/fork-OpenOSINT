@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -139,8 +140,11 @@ def _generate_pdf_sync(md_path: Path, pdf_path: Path, date_str: str) -> None:
         from reportlab.lib.units import mm  # type: ignore
         from reportlab.platypus import SimpleDocTemplate  # type: ignore
     except ImportError:
-        logger.warning(
-            "reportlab not installed — PDF generation skipped. Install with: pip install reportlab"
+        print(
+            f"[*] Markdown report saved: {md_path}\n"
+            f"    PDF skipped — reportlab failed to import.\n"
+            f"    Reinstall OpenOSINT to restore it: pip install --force-reinstall openosint",
+            file=sys.stderr,
         )
         return
 

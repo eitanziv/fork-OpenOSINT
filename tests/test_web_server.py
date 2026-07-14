@@ -1,8 +1,9 @@
 # tests/test_web_server.py
 """
-Unit tests for web_server.py Ollama streaming and tool-argument handling.
+Unit tests for web_server.py Ollama streaming, tool-argument handling,
+BYOK key threading, CORS, rate limiting, and /api/tools metadata.
 
-All HTTP calls are mocked — no live Ollama instance required.
+All HTTP calls are mocked — no live server or API keys required.
 """
 
 from __future__ import annotations
@@ -447,7 +448,7 @@ class TestSearchFootprintWebRegistration:
     async def test_run_tool_dispatches_footprint(self):
         from openosint.web_server import _run_tool
 
-        async def fake_footprint(target, max_queries=3, timeout_seconds=30):
+        async def fake_footprint(target, max_queries=3, timeout_seconds=30, *, api_keys=None):
             return f"footprint:{target}"
 
         with patch("openosint.web_server.run_footprint_osint", fake_footprint):
@@ -477,7 +478,6 @@ async def http_client():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestByokKeyForwarding:
     async def test_request_key_reaches_tool_runner(self, http_client):
         """api_keys in body is forwarded; runner receives the value."""
@@ -540,7 +540,6 @@ class TestByokKeyForwarding:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestKeyRequired:
     async def test_missing_single_key_returns_key_required(self, http_client):
         """No key in body or env → key_required:true with the missing key listed."""
@@ -626,7 +625,6 @@ class TestKeyRequired:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestCors:
     async def test_preflight_allowed_origin_returns_header(self, http_client):
         resp = await http_client.options(
@@ -664,7 +662,6 @@ class TestCors:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestToolsCatalog:
     async def test_all_entries_have_required_fields(self, http_client):
         resp = await http_client.get("/api/tools")
@@ -708,7 +705,6 @@ class TestToolsCatalog:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestRateLimiting:
     async def test_keyless_tool_blocked_after_limit(self, http_client):
         from openosint.web_server import _RL_MAX_REQS
@@ -751,7 +747,6 @@ class TestRateLimiting:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestDemoMode:
     """OPENOSINT_DEMO_MODE=true: /api/health exposes flag; /api/chat is blocked server-side."""
 
@@ -799,7 +794,6 @@ class TestDemoMode:
         assert '"type": "done"' in body
 
 
-@pytest.mark.xfail(reason="feature added post-v2.23.0; not part of 2.23.1 security patch", strict=False)
 class TestCreateAppFactoryRoutes:
     """Verify create_app() is fully self-serving — no CLI wrapper required."""
 

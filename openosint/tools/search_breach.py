@@ -15,6 +15,7 @@ import os
 
 import requests
 
+from openosint.proxy import get_requests_proxies
 from openosint.tools.exceptions import OSINTError, ToolExecutionError
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ _DEFAULT_TIMEOUT = 15
 _USER_AGENT = "OpenOSINT/2.8.0"
 
 
-def _fetch_hibp_breaches(email: str, timeout_seconds: int) -> list[dict]:
+def _fetch_hibp_breaches(email: str, timeout_seconds: int, api_key: str) -> list[dict]:
     """
     Query the HIBP v3 API for breaches associated with email.
 
@@ -33,7 +34,6 @@ def _fetch_hibp_breaches(email: str, timeout_seconds: int) -> list[dict]:
     OSINTError
         On missing API key, HTTP errors, or network failures.
     """
-    api_key = os.environ.get("HIBP_API_KEY", "")
     if not api_key:
         raise OSINTError(
             "HIBP_API_KEY environment variable is not set. "
@@ -49,6 +49,7 @@ def _fetch_hibp_breaches(email: str, timeout_seconds: int) -> list[dict]:
             headers=headers,
             params={"truncateResponse": "false"},
             timeout=timeout_seconds,
+            proxies=get_requests_proxies(),
         )
     except requests.RequestException as exc:
         raise OSINTError(f"Network error querying HIBP: {exc}") from exc
@@ -82,6 +83,8 @@ def _format_breach_results(breaches: list[dict], email: str) -> str:
 async def run_breach_osint(
     email: str,
     timeout_seconds: int = _DEFAULT_TIMEOUT,
+    *,
+    api_key: str | None = None,
 ) -> str:
     """
     Check whether email appears in known data breaches via HIBP.
@@ -101,9 +104,10 @@ async def run_breach_osint(
     str
         Formatted result string or a descriptive error message.
     """
+    resolved_key = api_key or os.environ.get("HIBP_API_KEY", "")
     logger.info("Starting breach check for: %s", email)
     try:
-        breaches = await asyncio.to_thread(_fetch_hibp_breaches, email, timeout_seconds)
+        breaches = await asyncio.to_thread(_fetch_hibp_breaches, email, timeout_seconds, resolved_key)
         result = _format_breach_results(breaches, email)
         logger.info("Breach check complete for: %s", email)
         return result

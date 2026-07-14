@@ -17,6 +17,14 @@
 <meta name="twitter:description" content="Open-source OSINT framework with 14 intelligence tools, MCP server, and AI-powered REPL for AI agents.">
 <link rel="icon" type="image/svg+xml" href="logo.svg">
 <link rel="stylesheet" href="style.css">
+<script>
+  window.addEventListener('load', function () {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var el = document.querySelector('.hero-video');
+      if (el) { el.removeAttribute('autoplay'); el.setAttribute('controls', ''); }
+    }
+  });
+</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -53,7 +61,11 @@
 <a href="#license">LICENSE</a>
 <a href="#services">SERVICES</a>
 <a href="#resources">RESOURCES</a>
+<a href="/prompt-pack.html">PROMPT PACK</a>
+<span class="nav-sep">|</span><a href="/free-prompts/?utm_source=site&amp;utm_medium=nav&amp;utm_campaign=free_starter" class="nav-cta">FREE PROMPTS</a>
+<a href="/commercial/" style="color:#f0a732;font-weight:bold;">FOR TEAMS</a>
 <a href="https://github.com/OpenOSINT/OpenOSINT" target="_blank" rel="noopener">GITHUB</a>
+<span class="nav-sep">|</span><a href="https://demo.openosint.tech" class="nav-cta">&#9654; LIVE DEMO</a>
 <span class="nav-sep">|</span><a href="/sponsors.html" class="nav-cta">&#10084; Sponsor</a>
 </div>
 
@@ -69,14 +81,23 @@
 </table>
 </div>
 
+<div style="background:#f0fff4;border:2px solid #3fb950;border-radius:6px;padding:18px 24px;margin:12px 0 0;text-align:center;font-family:monospace;">
+  <video class="hero-video" autoplay muted loop playsinline preload="metadata"
+         poster="assets/demo-web-graph-poster.jpg"
+         style="width:100%;max-width:860px;height:auto;display:block;margin:0 auto 16px;border-radius:4px;border:1px solid #2ea043;">
+    <source src="assets/demo-web-graph.mp4" type="video/mp4">
+  </video>
+  <p style="margin:0 0 6px;font-size:1.05rem;font-weight:bold;color:#000;">&#9654; Try the live demo</p>
+  <p style="color:#444;margin:0 0 14px;font-size:0.88rem;">Run a real OSINT investigation in your browser &mdash; bring your own Anthropic / OpenRouter / Ollama key, no signup.</p>
+  <a href="https://demo.openosint.tech" style="display:inline-block;background:#3fb950;color:#000;padding:10px 24px;border-radius:4px;text-decoration:none;font-weight:bold;font-family:monospace;font-size:14px;">Try the live demo &rarr;</a>
+</div>
+
 <hr>
 
-<div style="background:#fffdf0;border:1px solid #ddd;border-left:4px solid #f0a732;padding:14px 18px;margin:16px 0;font-family:monospace;font-size:13px;">
-<p style="margin:0 0 6px 0;"><b>OpenOSINT Cloud</b> &mdash; Hosted IP &amp; domain infrastructure intelligence API. No infra to manage.</p>
-<p style="margin:0 0 8px 0;color:#444;">Geolocation &middot; ISP/ASN &middot; Proxy/VPN/Tor detection &middot; IP abuse reputation &middot; DNS records &middot; Subdomain enumeration &middot; IP2Location included</p>
-<p style="margin:0;">$10 pay-as-you-go &nbsp;&middot;&nbsp; $19/mo Starter &nbsp;&middot;&nbsp; $49/mo Pro &nbsp;&nbsp;&rarr;&nbsp;&nbsp;
-<a href="/cloud/" style="color:#f0a732;font-weight:bold;">See plans and quick start &rarr;</a>
-&nbsp;&nbsp;<a href="https://buy.polar.sh/polar_cl_45nAq1h8jAxfrHXJNSFTXQ9jc5pk6mzOi4zSj4Dxypb" target="_blank" rel="noopener noreferrer" style="color:#3fb950;font-weight:bold;">Get started &rarr;</a></p>
+<div style="background:#fffdf0;border:1px solid #ddd;border-left:2px solid #bbb;padding:14px 18px;margin:16px 0;font-family:monospace;font-size:13px;">
+<p style="margin:0 0 6px 0;"><b>Custom OSINT &amp; MCP Integrations</b> &mdash; Bespoke OSINT &amp; MCP integrations wired into your SOC, fraud, threat-intel, or AI-agent stack. You bring the data sources and compliance requirements; I deliver a working, maintainable integration.</p>
+<p style="margin:0 0 8px 0;color:#444;">Maintainer of OpenOSINT (700+ stars) &middot; MCP-native</p>
+<p style="margin:0;"><a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Custom%20Integration" style="color:#3fb950;font-weight:bold;">Get in touch &rarr;</a></p>
 </div>
 
 <h2 id="name">NAME</h2>
@@ -107,11 +128,20 @@ openosint [<b>-v</b>] [<b>--api-key</b> <u>key</u>]</pre>
 <h2 id="prompt-pack">PROMPT PACK</h2>
 <div class="indent">
 <aside style="border:1px solid #1f2a44;background:#0b1220;border-radius:12px;padding:20px;margin:32px 0;">
-  <strong style="color:#e6edf3;font-size:1.05rem;">5 free AI OSINT prompts</strong>
-  <p style="color:#9fb0c3;margin:8px 0 14px;">The method behind the tool — scope, collect, pivot, verify, document. Get the free starter set, or step up to the full 30+ pack.</p>
-  <a href="/free-prompts" style="display:inline-block;background:#3b82f6;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Get 5 free prompts →</a>
-  <p style="margin:10px 0 0;font-size:0.85rem;"><a href="https://buy.polar.sh/polar_cl_0sipbBYjR01q4d9leCAtepteFDSGkPfy1TKoV3wIgkr?utm_source=openosint_site&utm_medium=cta&utm_campaign=promptpack" style="color:#9fb0c3;">Buy the full pack ($19) →</a></p>
+  <strong style="color:#e6edf3;font-size:1.05rem;">Free: 5 AI OSINT prompts that actually work</strong>
+  <p style="color:#9fb0c3;margin:8px 0 14px;">ChatGPT hallucinates when you give it a vague task. These 5 structured prompts force it to collect at every stage: scope &rarr; collect &rarr; pivot &rarr; verify &rarr; document. Free PDF &mdash; no card, instant download.</p>
+  <a href="/free-prompts/?utm_source=site&amp;utm_medium=hero&amp;utm_campaign=free_starter" style="display:inline-block;background:#3fb950;color:#000;padding:10px 20px;border-radius:4px;text-decoration:none;font-weight:bold;font-family:monospace;font-size:14px;">Download free PDF &rarr;</a>
+  <p style="margin:12px 0 0;font-size:0.82rem;color:#556270;">Want 30+ prompts? <a href="https://tommasodev.gumroad.com/l/ai-osint-prompt-pack?utm_source=site&amp;utm_medium=hero&amp;utm_campaign=prompt_pack" style="color:#9fb0c3;">Full pack ($29) &#8599;</a></p>
 </aside>
+</div>
+
+<h2 id="commercial">FOR TEAMS &amp; ORGANIZATIONS</h2>
+<div class="indent">
+<div style="border:1px solid #000;padding:14px 18px;margin:10px 0 16px 0;font-family:monospace;font-size:13px;">
+<p style="margin:0 0 6px 0;"><b>OpenOSINT is free and MIT-licensed for everyone</b> &mdash; personal, commercial, SaaS, closed-source. No purchase required.</p>
+<p style="margin:0 0 8px 0;">For organizations that need a <em>vendor relationship</em> &mdash; a signed contract, written warranty, indemnification, SLA, or priority support for procurement and legal compliance &mdash; an optional commercial service agreement is available.</p>
+<p style="margin:0;"><a href="/commercial/?utm_source=site&amp;utm_medium=hero&amp;utm_campaign=commercial" style="color:#000;font-weight:bold;">View plans (Starter &euro;300/yr &middot; Business &euro;600/yr &middot; Enterprise custom) &rarr;</a> &nbsp;&middot;&nbsp; <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Commercial%20%E2%80%94%20%5Byour%20org%5D" style="color:#000;">commercial@openosint.tech</a></p>
+</div>
 </div>
 
 <h2 id="demo">DEMO</h2>
@@ -119,7 +149,7 @@ openosint [<b>-v</b>] [<b>--api-key</b> <u>key</u>]</pre>
 <div style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:14px;">
   <div style="flex:1; min-width:280px;">
     <p><b>Web Interface</b></p>
-    <img src="assets/web-demo.gif"
+    <img src="assets/demo-web-graph.gif"
          alt="OpenOSINT web interface demo"
          style="max-width:100%; border:1px solid #333; display:block;">
     <p style="margin-top:6px;"><em>Browser-based chat UI &mdash; run <code>openosint web</code></em></p>
@@ -487,24 +517,15 @@ $ openosint -v email target@example.com</pre>
 
 <h2 id="license">LICENSE</h2>
 <div class="indent">
-<p>Released under the <strong>MIT License</strong> — free for personal, academic, and open source use. See <code>LICENSE</code> in the source distribution.</p>
-
-<p>For use in <strong>closed-source commercial products</strong>, a commercial license is required.</p>
-
+<p>Released under the <strong>MIT License</strong> &mdash; free for <em>any</em> use: personal, commercial, SaaS, closed-source, academic. No purchase required. See <code>LICENSE</code> in the source distribution.</p>
+<p>For organizations that need a vendor contract, written warranty, indemnification clause, or SLA on top of the MIT license, an optional commercial service agreement is available. Purchasing a plan does <em>not</em> restrict or replace your MIT rights &mdash; it is a separate service layer.</p>
 <table>
-  <thead>
-    <tr><th>Tier</th><th>Price</th><th>Developers</th><th>Products</th><th>Support</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><strong>Starter</strong></td><td>$9/month</td><td>Up to 3</td><td>1 commercial product</td><td>Email, 72h</td></tr>
-    <tr><td><strong>Pro</strong></td><td>$29/month</td><td>Up to 10</td><td>Unlimited</td><td>Priority, 48h</td></tr>
-    <tr><td><strong>Business</strong></td><td>$79/month</td><td>Unlimited</td><td>Unlimited</td><td>24h + invoice</td></tr>
-  </tbody>
+<tr><th>Tier</th><th>Price</th><th>What you get</th></tr>
+<tr><td><b>Starter</b></td><td>&euro;300 / year</td><td>Commercial use agreement, license assurance letter, email support</td></tr>
+<tr><td><b>Business</b></td><td>&euro;600 / year</td><td>Everything in Starter + priority support (2-day SLA), named contact, indemnification</td></tr>
+<tr><td><b>Enterprise</b></td><td>&euro;1,000+ / year</td><td>Everything in Business + SLA docs, compliance docs, vendor onboarding, PO/net-30</td></tr>
 </table>
-
-<p>All tiers include no attribution requirement, access to all updates while subscribed, and cancel anytime.</p>
-<p>To subscribe: email <a href="mailto:openosint@yahoo.com">openosint@yahoo.com</a> with subject <code>OpenOSINT Commercial License — [Starter/Pro/Business]</code>. You will receive a payment link and license document within 48 hours.</p>
-<p>→ <a href="commercial-license.md">Full commercial license details</a></p>
+<p>&rarr; <a href="/commercial/?utm_source=site&amp;utm_medium=license&amp;utm_campaign=commercial">Full commercial plan details</a> &nbsp;&middot;&nbsp; <a href="mailto:commercial@openosint.tech?subject=OpenOSINT%20Commercial%20%E2%80%94%20%5Byour%20org%5D">commercial@openosint.tech</a></p>
 </div>
 
 <h2 id="github">GITHUB</h2>
@@ -523,7 +544,7 @@ $ pip install -e .</pre>
 
 <h2 id="sponsors">SPONSORS</h2>
 <div class="indent">
-<p>OpenOSINT is proudly sponsored by <b><a href="https://www.ip2location.com" target="_blank" rel="noopener sponsored">IP2Location</a></b> (IP Geolocation &amp; IP Intelligence category).</p>
+<p>OpenOSINT is proudly sponsored by <b><a href="https://www.ip2location.com" target="_blank" rel="noopener sponsored">IP2Location</a></b> (IP Geolocation &amp; IP Intelligence category) and <b><a href="https://www.rapidproxy.io/?ref=openosint" target="_blank" rel="noopener sponsored">RapidProxy</a></b> (Residential Proxies category).</p>
 <p>Featured Integration sponsorships are available for four open categories: <b>residential/datacenter proxy detection</b>, <b>breach/compromised-credential data</b>, <b>threat &amp; domain intelligence</b>, and <b>email/identity lookup</b>. One vendor per category — exclusive placement in the README, docs, CLI banner, and Web UI.</p>
 <p>&rarr; <a href="/sponsors.html"><b>Full media kit and pricing</b></a> &mdash; <a href="https://opencollective.com/openosint_oss" target="_blank" rel="noopener">Open Collective</a> &mdash; <a href="mailto:openosint@yahoo.com?subject=OpenOSINT%20Sponsorship%20Inquiry">openosint@yahoo.com</a></p>
 </div>
@@ -544,13 +565,16 @@ $ pip install -e .</pre>
 <p><b>Delivery:</b> 3&ndash;5 days, fully async.</p>
 <p><b>For:</b> SOC analysts &middot; threat-intel teams &middot; fraud/AML &middot; pentesters &middot; OSINT investigators</p>
 <p><b>Founding pricing</b> available for early teams &mdash; inquire.</p>
-<p>&rarr; <a href="mailto:openosint@yahoo.com?subject=OSINT-MCP%20Setup%20Sprint">Start</a><!-- replace with INTAKE_FORM_LINK when ready --> &middot; <a href="mailto:openosint@yahoo.com">openosint@yahoo.com</a> &middot; <a href="https://www.linkedin.com/company/openosintoss" target="_blank" rel="noopener">LinkedIn</a></p>
+<h3>Need it set up for you?</h3>
+<p>Get OpenOSINT wired into your stack in 3&ndash;5 days &mdash; done-for-you, fully async, no calls.</p>
+<p><b>&rarr; <a href="https://tommasodev.gumroad.com/l/osint-mcp-setup-sprint" target="_blank" rel="noopener">Book the Setup Sprint &rarr; $350 (founding price, first 5 teams)</a></b></p>
+<p style="margin-top:6px;">&rarr; Or email <a href="mailto:openosint@yahoo.com">openosint@yahoo.com</a> &middot; <a href="https://www.linkedin.com/company/openosintoss" target="_blank" rel="noopener">LinkedIn</a></p>
 <p><em>For authorised use only. See <a href="https://github.com/OpenOSINT/OpenOSINT/blob/main/DISCLAIMER.md" target="_blank" rel="noopener">DISCLAIMER.md</a>.</em></p>
 </div>
 
 <h2 id="resources">RESOURCES</h2>
 <div class="indent">
-<p><a href="/free-prompts"><b>AI OSINT Prompt Pack</b></a> &mdash; free 5-prompt starter set, plus a full 30+ prompt pack for every stage of an investigation. Built to pair with OpenOSINT.</p>
+<p><a href="/free-prompts/?utm_source=site&amp;utm_medium=resources&amp;utm_campaign=free_starter"><b>Free AI OSINT Prompt Starter Set</b></a> &mdash; 5 structured prompts that make ChatGPT and Claude collect real data instead of hallucinating. Free PDF, instant download. <a href="/prompt-pack.html" style="color:#9fb0c3;">Full 30+ pack ($29) &#8599;</a></p>
 </div>
 
 <hr>

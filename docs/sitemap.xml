@@ -54,6 +54,14 @@
     <priority>0.4</priority>
   </url>
 
+  <!-- Commercial plan page -->
+  <url>
+    <loc>https://openosint.tech/commercial/</loc>
+    <lastmod>2026-06-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Cloud landing page -->
   <url>
     <loc>https://openosint.tech/cloud/</loc>
@@ -231,6 +239,13 @@
     <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://openosint.tech/prompt-pack.html</loc>
+    <lastmod>2026-06-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
 </urlset>

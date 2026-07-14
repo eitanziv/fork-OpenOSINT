@@ -3,21 +3,26 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from cloud import db, keys, polar, tools
+from cloud import db, rate_limit, tools
 from cloud.auth import get_customer
-from cloud.config import CHECKOUT_URLS, TOOL_TIMEOUT_SECONDS
-from cloud.key_sources import TOOL_KEY_CONFIG, KeySource
+from cloud.config import TOOL_TIMEOUT_SECONDS
+from cloud.key_sources import (
+    MissingCredentialError,
+    get_credit_cost,
+    is_platform_pool_tool,
+    resolve_key,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 _ERROR_PREFIXES = ("Scan error", "Internal error", "Error:")
+_CONTACT_MESSAGE = "No credits remaining. Contact commercial@openosint.tech for access."
 
 
 class EnrichRequest(BaseModel):
@@ -49,11 +54,25 @@ async def enrich(
             ),
         )
 
-    # Resolve upstream key before any credit touch — 422 on missing customer key
-    api_key = await _resolve_key(body.tool, customer)
+    # Resolve upstream key before any credit touch — 422 on missing tenant key
+    try:
+        api_key = await resolve_key(body.tool, customer.api_key)
+    except MissingCredentialError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    # 429 — burst smoothing on shared platform-pool keys (not the spend cap)
+    if is_platform_pool_tool(body.tool) and not rate_limit.platform_pool_limiter.allow(
+        f"{customer.api_key}:{body.tool}"
+    ):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many '{body.tool}' requests. Please slow down and try again shortly.",
+        )
+
+    cost = get_credit_cost(body.tool)
 
     # 402 — fast pre-check (avoids a DB round-trip for obviously empty accounts)
-    if customer.credits <= 0:
+    if customer.credits < cost:
         _raise_402(customer.plan)
 
     # Run the tool first; we only charge on a successful result
@@ -81,17 +100,11 @@ async def enrich(
             credits_left=customer.credits,
         )
 
-    # Atomically deduct one credit (guards against concurrent exhaustion)
-    new_credits = await db.decrement_credits(customer.api_key)
+    # Atomically deduct `cost` credits (guards against concurrent exhaustion)
+    new_credits = await db.decrement_credits(customer.api_key, cost)
     if new_credits is None:
         # Race: a concurrent request drained the last credit between pre-check and now
         _raise_402(customer.plan)
-
-    # Fire-and-forget Polar usage telemetry — errors are swallowed in polar.py
-    if customer.polar_customer_id:
-        asyncio.create_task(
-            polar.send_usage_event(customer.polar_customer_id, body.tool)
-        )
 
     return EnrichResponse(
         tool=result["tool"],
@@ -103,34 +116,5 @@ async def enrich(
     )
 
 
-async def _resolve_key(tool: str, customer: db.Customer) -> str | None:
-    """Return the upstream API key for tool, per TOOL_KEY_CONFIG."""
-    cfg = TOOL_KEY_CONFIG.get(tool)
-    if cfg is None or cfg.source == KeySource.none:
-        return None
-
-    if cfg.source == KeySource.server:
-        return os.environ.get(cfg.env_var, "") or None
-
-    # customer or customer_optional — look up from the customer's encrypted store
-    stored = await keys.get_key(customer.api_key, cfg.provider)
-
-    if cfg.source == KeySource.customer and stored is None:
-        raise HTTPException(
-            status_code=422,
-            detail=(
-                f"Tool '{tool}' requires a '{cfg.provider}' API key. "
-                f"Add it with: POST /v1/keys "
-                f'{{\"provider\": \"{cfg.provider}\", \"secret\": \"your_key\"}}'
-            ),
-        )
-
-    return stored  # None is valid for customer_optional when key is absent
-
-
 def _raise_402(plan: str) -> None:
-    checkout_url = CHECKOUT_URLS.get(plan) or CHECKOUT_URLS.get("payg", "")
-    raise HTTPException(
-        status_code=402,
-        detail={"message": "No credits remaining.", "checkout_url": checkout_url},
-    )
+    raise HTTPException(status_code=402, detail={"message": _CONTACT_MESSAGE})
