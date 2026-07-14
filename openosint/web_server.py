@@ -28,6 +28,7 @@ from typing import AsyncIterator
 from urllib.parse import urlparse as _urlparse
 
 import requests as _requests
+from dotenv import load_dotenv
 
 try:
     import httpx as _httpx
